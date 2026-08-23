@@ -1,0 +1,91 @@
+generated: '2026-08-23'
+method: derived
+status: candidate
+source: >-
+  Derived from openapi/_original/juvenescence-content-openapi.yml after searching for a published
+  server. Probes run 2026-08-23.
+summary: >-
+  Juvenescence ships no MCP server. This file is a CANDIDATE tool surface derived from the read
+  operations of the WordPress content API, so an integrator can see what an MCP wrapper would expose.
+  No `MCPServer` pointer is emitted in apis.yml, because none is published.
+deployment:
+  mode: none
+  endpoint: null
+  install: null
+  package: null
+  auth: none
+  verified: derived
+  note: >-
+    Nobody ships a server for this provider. No endpoint URL is invented here — a guessed MCP path
+    that happened to answer 200 would read as a verified agent surface, which is exactly the error
+    this field exists to prevent.
+search_evidence:
+- probe: GET https://juvlabs.com/wp-json/ namespace list
+  result: >-
+    25 namespaces registered; no `mcp` namespace. (Compare all/enveda-biosciences/, a peer biotech
+    WordPress site that DOES register /wp-json/mcp/mcp-adapter-default-server.)
+  checked: '2026-08-23'
+- probe: GET https://juvlabs.com/wp-json/wp-abilities/v1/abilities
+  result: >-
+    401 rest_forbidden. The WordPress Abilities API namespace IS registered on this install — that is
+    the capability registry a WordPress MCP adapter would surface as tools — but it is authentication
+    gated, so the ability set could not be enumerated anonymously. This is the closest thing to an
+    agent surface Juvenescence has, and it is one plugin away from being one.
+  checked: '2026-08-23'
+- probe: GET https://juvlabs.com/wp-json/wp-abilities/v1/categories
+  result: 401 rest_forbidden
+  checked: '2026-08-23'
+- probe: registry.npmjs.org lookups for juvenescence / juvlabs / ro5
+  result: 404 on all three
+  checked: '2026-08-23'
+- probe: GitHub organisations juvlabs and Ro5-ai
+  result: >-
+    juvlabs has 0 public repositories; Ro5-ai has 2, neither an MCP server (a drug-discovery API
+    client and a research code release).
+  checked: '2026-08-23'
+candidate_tools:
+- name: search_juvenescence
+  description: Search Juvenescence posts, pages and taxonomy terms by free text.
+  source_operation: openapi/juvenescence-search-api-openapi.yml#searchContent
+- name: list_news
+  description: List Juvenescence news posts, filterable by category, tag and date range.
+  source_operation: openapi/juvenescence-posts-api-openapi.yml#listPosts
+- name: get_news_post
+  description: Get one news post by ID with its full rendered content.
+  source_operation: openapi/juvenescence-posts-api-openapi.yml#getPost
+- name: list_pages
+  description: List the corporate, science, pipeline and leadership pages.
+  source_operation: openapi/juvenescence-pages-api-openapi.yml#listPages
+- name: get_page
+  description: Get one page by ID with its full rendered content.
+  source_operation: openapi/juvenescence-pages-api-openapi.yml#getPage
+- name: list_news_categories
+  description: List the news categories and their post counts.
+  source_operation: openapi/juvenescence-categories-api-openapi.yml#listCategories
+- name: list_tags
+  description: List the post tags — the Juvenescence portfolio-company vocabulary — and their counts.
+  source_operation: openapi/juvenescence-tags-api-openapi.yml#listTags
+- name: list_media
+  description: List media library items, filterable by media type and MIME type.
+  source_operation: openapi/juvenescence-media-api-openapi.yml#listMedia
+- name: get_site_index
+  description: Get the REST site index — namespaces, advertised authentication and the route table.
+  source_operation: openapi/juvenescence-discovery-api-openapi.yml#getSiteIndex
+- name: resolve_url
+  description: Resolve any juvlabs.com URL to its title, author and embed HTML via oEmbed.
+  source_operation: openapi/juvenescence-discovery-api-openapi.yml#getOembed
+coverage:
+  rest_operations_total: 26
+  candidate_tools: 10
+  note: >-
+    The 16 operations without a candidate tool are single-resource getters and metadata routes
+    (getMediaItem, getCategory, getTag, getComment, listComments, getPortfolioItem,
+    listPortfolio, listPortfolioCategories, getPortfolioCategory, getNamespaceIndex, listTypes,
+    getType, listTaxonomies, getTaxonomy, listStatuses, getStatus) that a tool layer would fold into
+    the ten above rather than expose separately.
+tool_crosswalk:
+  emitted: false
+  reason: >-
+    A tool crosswalk binds PUBLISHED MCP tools (or GraphQL fields) to backing OpenAPI operations. No
+    MCP server and no GraphQL endpoint exist here, so there is nothing to cross-walk — the
+    candidate_tools list above already carries its source_operation per row.

@@ -1,0 +1,2032 @@
+openapi: 3.1.0
+info:
+  title: Juvenescence Content API (WordPress REST API)
+  version: wp/v2
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived
+    from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's
+    news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35
+    corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag
+    taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly
+    queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored
+    specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site
+    itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23.
+    Write operations are registered on the same routes but are authenticated administrative endpoints, not a public
+    API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`,
+    `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the
+    whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication
+    and conformance artifacts instead.
+  contact:
+    name: Juvenescence Limited
+    url: https://juvlabs.com/contact-us/
+  termsOfService: https://juvlabs.com/terms-of-service/
+  x-derived-from: https://juvlabs.com/wp-json/
+  x-derived-on: '2026-08-23'
+  x-api-evangelist-note: Derived by the API Evangelist enrichment pipeline from the provider-published WordPress
+    REST route index at https://juvlabs.com/wp-json/ and https://juvlabs.com/wp-json/wp/v2; not authored or endorsed
+    by Juvenescence Limited. Every operation was verified to return HTTP 200 without credentials on 2026-08-23.
+servers:
+- url: https://juvlabs.com/wp-json
+  description: Production
+security:
+- {}
+tags:
+- name: Posts
+  description: Juvenescence press releases, in-the-news items, conference reports, publications and videos
+- name: Pages
+  description: Corporate, science, pipeline and leadership-biography pages
+- name: Media
+  description: Media library items (logos, leadership portraits, poster and press imagery)
+- name: Categories
+  description: Post categories (Press Releases, In the News, Juv on the Road, Publications, Videos)
+- name: Tags
+  description: Post tags, dominated by Juvenescence portfolio-company names
+- name: Comments
+  description: Comments on posts (the collection is empty on this site)
+- name: Search
+  description: Cross-content search over posts, pages and taxonomy terms
+- name: Portfolio
+  description: The site's registered `portfolio` custom post type and its `portfolio_category` taxonomy
+- name: Discovery
+  description: Site index, namespace route index, content types, taxonomies, statuses and oEmbed
+paths:
+  /wp/v2/posts:
+    get:
+      operationId: listPosts
+      tags:
+      - Posts
+      summary: List news posts
+      description: Lists Juvenescence's news stream. 57 posts were published at derivation, distributed across the
+        categories In the News (17), Juv on the Road (17), Press Releases (13), Publications (5) and Videos (5).
+        Returns `X-WP-Total`, `X-WP-TotalPages` and an RFC 8288 `Link` header. Only `status=publish` is readable
+        without credentials.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of news posts.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '400': &id001
+          $ref: '#/components/responses/BadRequest'
+        '401': &id002
+          $ref: '#/components/responses/Unauthorized'
+        '404': &id003
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/after'
+      - $ref: '#/components/parameters/before'
+      - $ref: '#/components/parameters/modified_after'
+      - $ref: '#/components/parameters/modified_before'
+      - $ref: '#/components/parameters/author'
+      - $ref: '#/components/parameters/author_exclude'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/search_semantics'
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/order'
+      - $ref: '#/components/parameters/postOrderby'
+      - $ref: '#/components/parameters/search_columns'
+      - $ref: '#/components/parameters/slugFilter'
+      - $ref: '#/components/parameters/statusFilter'
+      - $ref: '#/components/parameters/tax_relation'
+      - name: categories
+        in: query
+        description: Limit result set to items with specific terms assigned in the categories taxonomy. Populated
+          category IDs on this site are 5 (Press Releases), 6 (In the News), 50 (Juv on the Road), 52 (Publications)
+          and 53 (Videos).
+        schema:
+          type: array
+          items:
+            type: integer
+      - name: categories_exclude
+        in: query
+        description: Limit result set to items except those with specific terms assigned in the categories taxonomy.
+        schema:
+          type: array
+          items:
+            type: integer
+      - name: tags
+        in: query
+        description: Limit result set to items with specific terms assigned in the tags taxonomy. The populated
+          tags on this site name Juvenescence portfolio companies and collaborators — 21 (Juvenescence), 25 (MDI
+          Therapeutics), 28 (Napa Therapeutics), 35 (Souvien Therapeutics), 36 (The Buck Institute).
+        schema:
+          type: array
+          items:
+            type: integer
+      - name: tags_exclude
+        in: query
+        description: Limit result set to items except those with specific terms assigned in the tags taxonomy.
+        schema:
+          type: array
+          items:
+            type: integer
+      - name: sticky
+        in: query
+        description: Limit result set to items that are sticky.
+        schema:
+          type: boolean
+      - name: ignore_sticky
+        in: query
+        description: Whether to ignore sticky posts or not.
+        schema:
+          type: boolean
+          default: true
+      - name: format
+        in: query
+        description: Limit result set to items assigned one or more given formats.
+        schema:
+          type: array
+          items:
+            type: string
+  /wp/v2/posts/{id}:
+    get:
+      operationId: getPost
+      tags:
+      - Posts
+      summary: Get a news post
+      description: Retrieves a single news post by ID, including its rendered `title`, `content` and `excerpt`,
+        its category and tag assignments, and its `_links` relations.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested news post.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '401': &id004
+          $ref: '#/components/responses/Unauthorized'
+        '404': &id005
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/password'
+  /wp/v2/pages:
+    get:
+      operationId: listPages
+      tags:
+      - Pages
+      summary: List pages
+      description: 'Lists the site''s 35 published pages: the corporate and science set (`our-approach`, `science`,
+        `our-pipeline`, `our-team`, `contact-us`, `solutions`, `news`), the leadership biographies (Jim Mellon,
+        Dr Gregory Bailey, Dr Declan Doogan, Dr Richard Marshall CBE, Eileen Jennings-Brown, Professor Eric Verdin,
+        Professor Lynne Cox, Professor Hugh Montgomery and others), and the policy pages (`terms-of-service`, `privacy-notice`,
+        `cookie-notice`, `refund-policy`, `unsolicited-idea-submission-policy`).'
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of pages.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Page'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/after'
+      - $ref: '#/components/parameters/before'
+      - $ref: '#/components/parameters/modified_after'
+      - $ref: '#/components/parameters/modified_before'
+      - $ref: '#/components/parameters/author'
+      - $ref: '#/components/parameters/author_exclude'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/menu_order'
+      - $ref: '#/components/parameters/search_semantics'
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/order'
+      - $ref: '#/components/parameters/pageOrderby'
+      - $ref: '#/components/parameters/parentFilter'
+      - $ref: '#/components/parameters/parent_exclude'
+      - $ref: '#/components/parameters/search_columns'
+      - $ref: '#/components/parameters/slugFilter'
+      - $ref: '#/components/parameters/statusFilter'
+  /wp/v2/pages/{id}:
+    get:
+      operationId: getPage
+      tags:
+      - Pages
+      summary: Get a page
+      description: 'Retrieves a single page by ID, including its rendered content. Useful IDs at derivation: 3809
+        (Our Pipeline), 4139 (Our Team), 4524 (Science), 5786 (Our Approach), 4275 (Contact Us), 920 (Terms Of Service),
+        879 (Privacy Notice).'
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/password'
+  /wp/v2/media:
+    get:
+      operationId: listMedia
+      tags:
+      - Media
+      summary: List media items
+      description: Lists the 466-item media library — the Juvenescence logo and sub-mark, leadership portraits,
+        press and conference imagery, and documents. `media_details` carries the generated size variants for each
+        image.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of media items.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaItem'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/after'
+      - $ref: '#/components/parameters/before'
+      - $ref: '#/components/parameters/modified_after'
+      - $ref: '#/components/parameters/modified_before'
+      - $ref: '#/components/parameters/author'
+      - $ref: '#/components/parameters/author_exclude'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/search_semantics'
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/order'
+      - $ref: '#/components/parameters/postOrderby'
+      - $ref: '#/components/parameters/parentFilter'
+      - $ref: '#/components/parameters/parent_exclude'
+      - $ref: '#/components/parameters/search_columns'
+      - $ref: '#/components/parameters/slugFilter'
+      - name: status
+        in: query
+        description: Limit result set to attachments assigned one or more statuses.
+        schema:
+          type: array
+          items:
+            type: string
+          default:
+          - inherit
+      - name: media_type
+        in: query
+        description: Limit result set to attachments of a particular media type or media types.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - image
+            - video
+            - text
+            - application
+            - audio
+            - file
+      - name: mime_type
+        in: query
+        description: Limit result set to attachments of a particular MIME type or MIME types.
+        schema:
+          type: array
+          items:
+            type: string
+  /wp/v2/media/{id}:
+    get:
+      operationId: getMediaItem
+      tags:
+      - Media
+      summary: Get a media item
+      description: Retrieves a single media library item by ID, including `source_url` and the generated size variants
+        in `media_details`.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested media item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaItem'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+  /wp/v2/categories:
+    get:
+      operationId: listCategories
+      tags:
+      - Categories
+      summary: List post categories
+      description: 'Lists the 7 registered post categories. Five are populated: Press Releases (5, 13 posts), In
+        the News (6, 17), Juv on the Road (50, 17), Publications (52, 5) and Videos (53, 5). `Healthy Aging & Lifestyle`
+        (10) and `Uncategorized` (1) are registered but empty.'
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of categories.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Term'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - &id006
+        $ref: '#/components/parameters/context'
+      - &id007
+        $ref: '#/components/parameters/page'
+      - &id008
+        $ref: '#/components/parameters/per_page'
+      - &id009
+        $ref: '#/components/parameters/search'
+      - &id010
+        $ref: '#/components/parameters/exclude'
+      - &id011
+        $ref: '#/components/parameters/include'
+      - &id012
+        $ref: '#/components/parameters/orderAsc'
+      - &id013
+        $ref: '#/components/parameters/termOrderby'
+      - &id014
+        $ref: '#/components/parameters/hide_empty'
+      - &id015
+        $ref: '#/components/parameters/termPost'
+      - &id016
+        $ref: '#/components/parameters/slugFilter'
+      - $ref: '#/components/parameters/termParent'
+  /wp/v2/categories/{id}:
+    get:
+      operationId: getCategory
+      tags:
+      - Categories
+      summary: Get a post category
+      description: Retrieves a single post category by ID, including its post `count` and archive `link`.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested category.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Term'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+  /wp/v2/tags:
+    get:
+      operationId: listTags
+      tags:
+      - Tags
+      summary: List post tags
+      description: Lists the 25 registered post tags. The vocabulary is dominated by Juvenescence portfolio companies
+        and collaborators — AgeX, Chrysea Labs, Evgen Pharma, LyGenesis, MDI Therapeutics, Morphoceuticals, Napa
+        Therapeutics, NetraMark Corp., Relation Therapeutics, Selah Therapeutics, Souvien Therapeutics and The Buck
+        Institute — alongside a legacy consumer-nutrition set (Keto, Ketosis 101, Ketone Science, Intermittent Fasting,
+        Meal Replacement, Protein, Vegan, Recipe) from the company's earlier supplements business. Only 5 tags carry
+        posts.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of tags.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Term'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+      - $ref: '#/components/parameters/offset'
+  /wp/v2/tags/{id}:
+    get:
+      operationId: getTag
+      tags:
+      - Tags
+      summary: Get a post tag
+      description: Retrieves a single post tag by ID, including its post `count` and archive `link`.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested tag.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Term'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+  /wp/v2/comments:
+    get:
+      operationId: listComments
+      tags:
+      - Comments
+      summary: List comments
+      description: 'Lists approved comments. The collection is empty on juvlabs.com (`X-WP-Total: 0`) — comments
+        are not used on this site. The `author`, `author_email`, `status` and `type` filters require credentials
+        and are omitted here.'
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of comments. Empty on this site.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/after'
+      - $ref: '#/components/parameters/before'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/order'
+      - $ref: '#/components/parameters/parentFilter'
+      - $ref: '#/components/parameters/parent_exclude'
+      - $ref: '#/components/parameters/password'
+      - name: orderby
+        in: query
+        description: Sort collection by comment attribute.
+        schema:
+          type: string
+          default: date_gmt
+          enum:
+          - date
+          - date_gmt
+          - id
+          - include
+          - post
+          - parent
+          - type
+      - name: post
+        in: query
+        description: Limit result set to comments assigned to specific post IDs.
+        schema:
+          type: array
+          items:
+            type: integer
+  /wp/v2/comments/{id}:
+    get:
+      operationId: getComment
+      tags:
+      - Comments
+      summary: Get a comment
+      description: Retrieves a single comment by ID. No comments exist on juvlabs.com, so this operation returns
+        404 for every ID at derivation.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested comment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/password'
+  /wp/v2/search:
+    get:
+      operationId: searchContent
+      tags:
+      - Search
+      summary: Search across content
+      description: Cross-content search over posts, pages, the portfolio type and taxonomy terms. A search for `aging`
+        returned 46 hits at derivation. Set `type=term` to search taxonomy terms instead of posts, and `subtype`
+        to narrow to one post type or taxonomy. This is the single best entry point for an agent that needs to find
+        Juvenescence material without walking every collection.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of search results.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - $ref: '#/components/parameters/contextEmbed'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - name: type
+        in: query
+        description: Limit results to items of an object type.
+        schema:
+          type: string
+          default: post
+          enum:
+          - post
+          - term
+          - post-format
+      - name: subtype
+        in: query
+        description: Limit results to items of one or more object subtypes, e.g. `post`, `page`, `portfolio`, `category`,
+          `post_tag`.
+        schema:
+          type: array
+          items:
+            type: string
+          default:
+          - any
+  /wp/v2/portfolio:
+    get:
+      operationId: listPortfolio
+      tags:
+      - Portfolio
+      summary: List portfolio items
+      description: 'Lists items of the site''s registered `portfolio` custom post type. The type is registered,
+        public, archive-enabled and REST-exposed, but the collection returned `X-WP-Total: 0` at derivation — Juvenescence''s
+        portfolio companies are currently described in page copy and post tags rather than in this type.'
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of portfolio items. Empty at derivation.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortfolioItem'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/after'
+      - $ref: '#/components/parameters/before'
+      - $ref: '#/components/parameters/modified_after'
+      - $ref: '#/components/parameters/modified_before'
+      - $ref: '#/components/parameters/author'
+      - $ref: '#/components/parameters/author_exclude'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/menu_order'
+      - $ref: '#/components/parameters/search_semantics'
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/order'
+      - $ref: '#/components/parameters/pageOrderby'
+      - $ref: '#/components/parameters/search_columns'
+      - $ref: '#/components/parameters/slugFilter'
+      - $ref: '#/components/parameters/statusFilter'
+      - $ref: '#/components/parameters/tax_relation'
+      - name: portfolio_category
+        in: query
+        description: Limit result set to items with specific terms assigned in the portfolio_category taxonomy.
+        schema:
+          type: array
+          items:
+            type: integer
+      - name: portfolio_category_exclude
+        in: query
+        description: Limit result set to items except those with specific terms assigned in the portfolio_category
+          taxonomy.
+        schema:
+          type: array
+          items:
+            type: integer
+  /wp/v2/portfolio/{id}:
+    get:
+      operationId: getPortfolioItem
+      tags:
+      - Portfolio
+      summary: Get a portfolio item
+      description: Retrieves a single portfolio item by ID.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested portfolio item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioItem'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/password'
+  /wp/v2/portfolio_category:
+    get:
+      operationId: listPortfolioCategories
+      tags:
+      - Portfolio
+      summary: List portfolio categories
+      description: Lists terms in the `portfolio_category` taxonomy. Empty at derivation.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of portfolio categories. Empty at derivation.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Term'
+        '400': *id001
+        '401': *id002
+        '404': *id003
+      parameters:
+      - *id006
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+      - *id013
+      - *id014
+      - *id015
+      - *id016
+      - $ref: '#/components/parameters/termParent'
+  /wp/v2/portfolio_category/{id}:
+    get:
+      operationId: getPortfolioCategory
+      tags:
+      - Portfolio
+      summary: Get a portfolio category
+      description: Retrieves a single `portfolio_category` term by ID.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested portfolio category.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Term'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+  /:
+    get:
+      operationId: getSiteIndex
+      tags:
+      - Discovery
+      summary: Get the REST site index
+      description: Returns the WordPress REST API site index for juvlabs.com — site name and tagline, the 25 registered
+        namespaces, the advertised authentication schemes (empty on this install), and the full 512-route table.
+        This is the discovery document the rest of this specification was derived from, and the correct first call
+        for any agent.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The site index.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteIndex'
+      parameters:
+      - $ref: '#/components/parameters/context'
+  /wp/v2:
+    get:
+      operationId: getNamespaceIndex
+      tags:
+      - Discovery
+      summary: Get the wp/v2 namespace index
+      description: Returns the route index for the `wp/v2` namespace, with each route's methods, endpoints and per-argument
+        schema (type, default, enum, required). This is the machine-readable parameter contract behind every operation
+        in this document.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The wp/v2 namespace index.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamespaceIndex'
+      parameters:
+      - $ref: '#/components/parameters/context'
+  /wp/v2/types:
+    get:
+      operationId: listTypes
+      tags:
+      - Discovery
+      summary: List registered post types
+      description: Lists the post types registered on juvlabs.com, including the custom `portfolio` type alongside
+        the core `post`, `page` and `attachment` types.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A map of post types keyed by slug.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostType'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/context'
+  /wp/v2/types/{type}:
+    get:
+      operationId: getType
+      tags:
+      - Discovery
+      summary: Get a registered post type
+      description: Retrieves a single registered post type by slug, including its `taxonomies`, `rest_base` and
+        `rest_namespace`.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested post type.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostType'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - name: type
+        in: path
+        required: true
+        description: An alphanumeric identifier for the post type.
+        schema:
+          type: string
+          examples:
+          - post
+          - page
+          - attachment
+          - portfolio
+      - $ref: '#/components/parameters/context'
+  /wp/v2/taxonomies:
+    get:
+      operationId: listTaxonomies
+      tags:
+      - Discovery
+      summary: List registered taxonomies
+      description: Lists the taxonomies registered on juvlabs.com — `category`, `post_tag` and the custom `portfolio_category`
+        — with the post types each is attached to.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A map of taxonomies keyed by slug.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Taxonomy'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - name: type
+        in: query
+        description: Limit results to taxonomies associated with a specific post type.
+        schema:
+          type: string
+  /wp/v2/taxonomies/{taxonomy}:
+    get:
+      operationId: getTaxonomy
+      tags:
+      - Discovery
+      summary: Get a registered taxonomy
+      description: Retrieves a single registered taxonomy by slug.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested taxonomy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Taxonomy'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - name: taxonomy
+        in: path
+        required: true
+        description: An alphanumeric identifier for the taxonomy.
+        schema:
+          type: string
+          examples:
+          - category
+          - post_tag
+          - portfolio_category
+      - $ref: '#/components/parameters/context'
+  /wp/v2/statuses:
+    get:
+      operationId: listStatuses
+      tags:
+      - Discovery
+      summary: List registered post statuses
+      description: Lists the post statuses visible without credentials. Only `publish` is exposed anonymously on
+        this install.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A map of statuses keyed by slug.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - $ref: '#/components/parameters/context'
+  /wp/v2/statuses/{status}:
+    get:
+      operationId: getStatus
+      tags:
+      - Discovery
+      summary: Get a registered post status
+      description: Retrieves a single registered post status by slug.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '401': *id004
+        '404': *id005
+      parameters:
+      - name: status
+        in: path
+        required: true
+        description: An alphanumeric identifier for the status.
+        schema:
+          type: string
+          examples:
+          - publish
+      - $ref: '#/components/parameters/context'
+  /oembed/1.0/embed:
+    get:
+      operationId: getOembed
+      tags:
+      - Discovery
+      summary: Get an oEmbed response for a juvlabs.com URL
+      description: Returns an oEmbed 1.0 rich response for any juvlabs.com URL — the lightest way to resolve a Juvenescence
+        page or news URL to its title, author and embed HTML without fetching the page.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The oEmbed response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OEmbed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - name: url
+        in: query
+        required: true
+        description: The URL of the resource for which to fetch oEmbed data. Must be on juvlabs.com.
+        schema:
+          type: string
+          format: uri
+      - name: format
+        in: query
+        description: The oEmbed format to use.
+        schema:
+          type: string
+          default: json
+          enum:
+          - json
+          - xml
+      - name: maxwidth
+        in: query
+        description: The maximum width of the embed frame in pixels.
+        schema:
+          type: integer
+          default: 600
+components:
+  parameters:
+    context:
+      name: context
+      in: query
+      description: Scope under which the request is made; determines fields present in response.
+      schema:
+        type: string
+        default: view
+        enum:
+        - view
+        - embed
+        - edit
+    contextEmbed:
+      name: contextEmbed
+      in: query
+      description: Scope under which the request is made; determines fields present in response.
+      schema:
+        type: string
+        default: view
+        enum:
+        - view
+        - embed
+    page:
+      name: page
+      in: query
+      description: Current page of the collection.
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    per_page:
+      name: per_page
+      in: query
+      description: Maximum number of items to be returned in result set.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    after:
+      name: after
+      in: query
+      description: Limit response to posts published after a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    before:
+      name: before
+      in: query
+      description: Limit response to posts published before a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    modified_after:
+      name: modified_after
+      in: query
+      description: Limit response to posts modified after a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    modified_before:
+      name: modified_before
+      in: query
+      description: Limit response to posts modified before a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    author:
+      name: author
+      in: query
+      description: Limit result set to posts assigned to specific authors.
+      schema:
+        type: array
+        items:
+          type: integer
+    author_exclude:
+      name: author_exclude
+      in: query
+      description: Ensure result set excludes posts assigned to specific authors.
+      schema:
+        type: array
+        items:
+          type: integer
+    exclude:
+      name: exclude
+      in: query
+      description: Ensure result set excludes specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    include:
+      name: include
+      in: query
+      description: Limit result set to specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    offset:
+      name: offset
+      in: query
+      description: Offset the result set by a specific number of items.
+      schema:
+        type: integer
+    order:
+      name: order
+      in: query
+      description: Order sort attribute ascending or descending.
+      schema:
+        type: string
+        default: desc
+        enum:
+        - asc
+        - desc
+    orderAsc:
+      name: orderAsc
+      in: query
+      description: Order sort attribute ascending or descending.
+      schema:
+        type: string
+        default: asc
+        enum:
+        - asc
+        - desc
+    search_semantics:
+      name: search_semantics
+      in: query
+      description: How to interpret the search input.
+      schema:
+        type: string
+        enum:
+        - exact
+    search_columns:
+      name: search_columns
+      in: query
+      description: Array of column names to be searched.
+      schema:
+        type: array
+        items:
+          type: string
+    slugFilter:
+      name: slugFilter
+      in: query
+      description: Limit result set to items with one or more specific slugs.
+      schema:
+        type: array
+        items:
+          type: string
+    statusFilter:
+      name: statusFilter
+      in: query
+      description: Limit result set to posts assigned one or more statuses. Only `publish` is readable without credentials
+        on this install.
+      schema:
+        type: array
+        items:
+          type: string
+        default:
+        - publish
+    tax_relation:
+      name: tax_relation
+      in: query
+      description: Limit result set based on relationship between multiple taxonomies.
+      schema:
+        type: string
+        enum:
+        - AND
+        - OR
+    parentFilter:
+      name: parentFilter
+      in: query
+      description: Limit result set to items with particular parent IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    parent_exclude:
+      name: parent_exclude
+      in: query
+      description: Limit result set to all items except those of a particular parent ID.
+      schema:
+        type: array
+        items:
+          type: integer
+    hide_empty:
+      name: hide_empty
+      in: query
+      description: Whether to hide terms not assigned to any posts.
+      schema:
+        type: boolean
+        default: false
+    termParent:
+      name: termParent
+      in: query
+      description: Limit result set to terms assigned to a specific parent.
+      schema:
+        type: integer
+    termPost:
+      name: termPost
+      in: query
+      description: Limit result set to terms assigned to a specific post.
+      schema:
+        type: integer
+    termOrderby:
+      name: termOrderby
+      in: query
+      description: Sort collection by term attribute.
+      schema:
+        type: string
+        default: name
+        enum:
+        - id
+        - include
+        - name
+        - slug
+        - include_slugs
+        - term_group
+        - description
+        - count
+    postOrderby:
+      name: postOrderby
+      in: query
+      description: Sort collection by post attribute.
+      schema:
+        type: string
+        default: date
+        enum:
+        - author
+        - date
+        - id
+        - include
+        - modified
+        - parent
+        - relevance
+        - slug
+        - include_slugs
+        - title
+    pageOrderby:
+      name: pageOrderby
+      in: query
+      description: Sort collection by post attribute.
+      schema:
+        type: string
+        default: date
+        enum:
+        - author
+        - date
+        - id
+        - include
+        - modified
+        - parent
+        - relevance
+        - slug
+        - include_slugs
+        - title
+        - menu_order
+    menu_order:
+      name: menu_order
+      in: query
+      description: Limit result set to posts with a specific menu_order value.
+      schema:
+        type: integer
+    id:
+      name: id
+      in: path
+      description: Unique identifier for the resource.
+      schema:
+        type: integer
+      required: true
+    password:
+      name: password
+      in: query
+      description: The password for the post if it is password protected.
+      schema:
+        type: string
+  schemas:
+    Rendered:
+      type: object
+      description: A WordPress rendered-content object.
+      properties:
+        rendered:
+          type: string
+          description: HTML for the field, transformed for display.
+    Post:
+      type: object
+      description: A Juvenescence news item — press release, in-the-news pickup, conference report, publication
+        abstract or video.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the post.
+        date:
+          type: string
+          format: date-time
+          description: The date the post was published, in the site's timezone.
+        date_gmt:
+          type: string
+          format: date-time
+          description: The date the post was published, as GMT.
+        guid:
+          $ref: '#/components/schemas/Rendered'
+        modified:
+          type: string
+          format: date-time
+          description: The date the post was last modified, in the site's timezone.
+        modified_gmt:
+          type: string
+          format: date-time
+          description: The date the post was last modified, as GMT.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the post unique to its type.
+        status:
+          type: string
+          description: A named status for the post.
+          examples:
+          - publish
+        type:
+          type: string
+          description: Type of post.
+          examples:
+          - post
+        link:
+          type: string
+          format: uri
+          description: URL to the post on juvlabs.com.
+        title:
+          $ref: '#/components/schemas/Rendered'
+        content:
+          $ref: '#/components/schemas/Rendered'
+        excerpt:
+          $ref: '#/components/schemas/Rendered'
+        author:
+          type: integer
+          description: The ID for the author of the post.
+        featured_media:
+          type: integer
+          description: The ID of the featured media for the post.
+        comment_status:
+          type: string
+          description: Whether or not comments are open on the post.
+        ping_status:
+          type: string
+          description: Whether or not the post can be pinged.
+        sticky:
+          type: boolean
+          description: Whether or not the post should be treated as sticky.
+        format:
+          type: string
+          description: The format for the post.
+        categories:
+          type: array
+          items:
+            type: integer
+          description: The terms assigned to the post in the category taxonomy.
+        tags:
+          type: array
+          items:
+            type: integer
+          description: The terms assigned to the post in the post_tag taxonomy.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Page:
+      type: object
+      description: A Juvenescence corporate, science, pipeline or leadership-biography page.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the page.
+        date:
+          type: string
+          format: date-time
+          description: The date the page was published, in the site's timezone.
+        date_gmt:
+          type: string
+          format: date-time
+          description: The date the page was published, as GMT.
+        modified:
+          type: string
+          format: date-time
+          description: The date the page was last modified, in the site's timezone.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the page.
+          examples:
+          - our-pipeline
+          - our-team
+          - science
+          - our-approach
+          - contact-us
+        status:
+          type: string
+          description: A named status for the page.
+        type:
+          type: string
+          description: Type of post.
+          examples:
+          - page
+        link:
+          type: string
+          format: uri
+          description: URL to the page on juvlabs.com.
+        title:
+          $ref: '#/components/schemas/Rendered'
+        content:
+          $ref: '#/components/schemas/Rendered'
+        excerpt:
+          $ref: '#/components/schemas/Rendered'
+        author:
+          type: integer
+          description: The ID for the author of the page.
+        featured_media:
+          type: integer
+          description: The ID of the featured media for the page.
+        parent:
+          type: integer
+          description: The ID for the parent of the page.
+        menu_order:
+          type: integer
+          description: The order of the page in relation to other pages.
+        template:
+          type: string
+          description: The theme file to use to display the page.
+        _links:
+          $ref: '#/components/schemas/Links'
+    MediaItem:
+      type: object
+      description: A media library item — logo, leadership portrait, press or poster image, or document.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the attachment.
+        date:
+          type: string
+          format: date-time
+          description: The date the attachment was published.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the attachment.
+        type:
+          type: string
+          description: Type of post.
+          examples:
+          - attachment
+        link:
+          type: string
+          format: uri
+          description: URL to the attachment page.
+        title:
+          $ref: '#/components/schemas/Rendered'
+        author:
+          type: integer
+          description: The ID for the author of the attachment.
+        caption:
+          $ref: '#/components/schemas/Rendered'
+        alt_text:
+          type: string
+          description: Alternative text to display when attachment is not displayed.
+        media_type:
+          type: string
+          description: Attachment type.
+          examples:
+          - image
+          - file
+        mime_type:
+          type: string
+          description: The attachment MIME type.
+          examples:
+          - image/png
+          - image/jpeg
+        media_details:
+          type: object
+          description: Details about the media file, specific to its type (width, height, filesize, and the generated
+            size variants).
+          additionalProperties: true
+        post:
+          type:
+          - integer
+          - 'null'
+          description: The ID for the associated post of the attachment.
+        source_url:
+          type: string
+          format: uri
+          description: URL to the original attachment file.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Term:
+      type: object
+      description: A taxonomy term (category, post tag, or portfolio category).
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the term.
+        count:
+          type: integer
+          description: Number of published posts for the term.
+        description:
+          type: string
+          description: HTML description of the term.
+        link:
+          type: string
+          format: uri
+          description: URL of the term archive on juvlabs.com.
+        name:
+          type: string
+          description: HTML title for the term.
+          examples:
+          - Press Releases
+          - In the News
+          - Juv on the Road
+          - Publications
+          - Videos
+        slug:
+          type: string
+          description: An alphanumeric identifier for the term unique to its type.
+        taxonomy:
+          type: string
+          description: Type attribution for the term.
+          examples:
+          - category
+          - post_tag
+          - portfolio_category
+        parent:
+          type: integer
+          description: The parent term ID. Hierarchical taxonomies only.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Comment:
+      type: object
+      description: A comment on a post. The collection is empty on juvlabs.com.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the comment.
+        author_name:
+          type: string
+          description: Display name for the comment author.
+        content:
+          $ref: '#/components/schemas/Rendered'
+        date:
+          type: string
+          format: date-time
+          description: The date the comment was published.
+        link:
+          type: string
+          format: uri
+          description: URL to the comment.
+        parent:
+          type: integer
+          description: The ID for the parent of the comment.
+        post:
+          type: integer
+          description: The ID of the associated post object.
+        status:
+          type: string
+          description: State of the comment.
+        type:
+          type: string
+          description: Type of the comment.
+        _links:
+          $ref: '#/components/schemas/Links'
+    SearchResult:
+      type: object
+      description: A cross-content search hit.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the object.
+        title:
+          type: string
+          description: The title for the object.
+        url:
+          type: string
+          format: uri
+          description: URL to the object.
+        type:
+          type: string
+          description: Object type.
+          examples:
+          - post
+          - term
+        subtype:
+          type: string
+          description: Object subtype.
+          examples:
+          - post
+          - page
+          - portfolio
+          - category
+          - post_tag
+        _links:
+          $ref: '#/components/schemas/Links'
+    PortfolioItem:
+      type: object
+      description: 'An item of the site''s registered `portfolio` custom post type. The type is registered, public
+        and REST-enabled, and the collection returned X-WP-Total: 0 when derived — the shape below is the type''s
+        registered field set, not observed content.'
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the portfolio item.
+        date:
+          type: string
+          format: date-time
+          description: The date the item was published.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the item.
+        status:
+          type: string
+          description: A named status for the item.
+        type:
+          type: string
+          description: Type of post.
+          examples:
+          - portfolio
+        link:
+          type: string
+          format: uri
+          description: URL to the item on juvlabs.com.
+        title:
+          $ref: '#/components/schemas/Rendered'
+        content:
+          $ref: '#/components/schemas/Rendered'
+        excerpt:
+          $ref: '#/components/schemas/Rendered'
+        featured_media:
+          type: integer
+          description: The ID of the featured media for the item.
+        menu_order:
+          type: integer
+          description: The order of the item in relation to other items.
+        portfolio_category:
+          type: array
+          items:
+            type: integer
+          description: The terms assigned to the item in the portfolio_category taxonomy.
+        _links:
+          $ref: '#/components/schemas/Links'
+    PostType:
+      type: object
+      description: A registered post type.
+      properties:
+        description:
+          type: string
+          description: A human-readable description of the post type.
+        hierarchical:
+          type: boolean
+          description: Whether or not the post type should have children.
+        has_archive:
+          type:
+          - boolean
+          - string
+          description: If the value is a string, the value will be used as the archive slug.
+        name:
+          type: string
+          description: The title for the post type.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the post type.
+          examples:
+          - post
+          - page
+          - attachment
+          - portfolio
+        taxonomies:
+          type: array
+          items:
+            type: string
+          description: All taxonomies associated with this post type.
+        rest_base:
+          type: string
+          description: REST base route for the post type.
+        rest_namespace:
+          type: string
+          description: REST route's namespace for the post type.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Taxonomy:
+      type: object
+      description: A registered taxonomy.
+      properties:
+        name:
+          type: string
+          description: The title for the taxonomy.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the taxonomy.
+          examples:
+          - category
+          - post_tag
+          - portfolio_category
+        description:
+          type: string
+          description: A human-readable description of the taxonomy.
+        types:
+          type: array
+          items:
+            type: string
+          description: Types associated with the taxonomy.
+        hierarchical:
+          type: boolean
+          description: Whether or not the taxonomy should have children.
+        rest_base:
+          type: string
+          description: REST base route for the taxonomy.
+        rest_namespace:
+          type: string
+          description: REST route's namespace for the taxonomy.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Status:
+      type: object
+      description: A registered post status.
+      properties:
+        name:
+          type: string
+          description: The title for the status.
+        public:
+          type: boolean
+          description: Whether posts with this status should be shown in the front end of the site.
+        queryable:
+          type: boolean
+          description: Whether posts with this status should be publicly-queryable.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the status.
+          examples:
+          - publish
+        date_floating:
+          type: boolean
+          description: Whether the status is excluded from the date query.
+        _links:
+          $ref: '#/components/schemas/Links'
+    SiteIndex:
+      type: object
+      description: The WordPress REST API site index — the discovery document served at /wp-json/.
+      properties:
+        name:
+          type: string
+          description: The site name.
+          examples:
+          - Juvenescence
+        description:
+          type: string
+          description: The site tagline.
+          examples:
+          - Extending Healthy Lifespan
+        url:
+          type: string
+          format: uri
+          description: The site URL.
+        home:
+          type: string
+          format: uri
+          description: The site home URL.
+        gmt_offset:
+          type:
+          - number
+          - string
+          description: The site GMT offset.
+        namespaces:
+          type: array
+          items:
+            type: string
+          description: The registered REST namespaces. 25 are registered on this install.
+        authentication:
+          type: object
+          description: Advertised authentication schemes. Empty on this install — no application-password or OAuth
+            discovery is exposed.
+          additionalProperties: true
+        site_icon_url:
+          type: string
+          format: uri
+          description: URL of the site icon.
+        routes:
+          type: object
+          description: The full route table, keyed by route pattern. 512 routes are registered on this install;
+            most belong to administrative plugin namespaces and require credentials.
+          additionalProperties: true
+        _links:
+          $ref: '#/components/schemas/Links'
+    NamespaceIndex:
+      type: object
+      description: The route index for a single REST namespace.
+      properties:
+        namespace:
+          type: string
+          description: The namespace identifier.
+          examples:
+          - wp/v2
+        routes:
+          type: object
+          description: Routes registered in this namespace, keyed by route pattern, each carrying its methods, endpoints
+            and per-argument schema.
+          additionalProperties: true
+        _links:
+          $ref: '#/components/schemas/Links'
+    OEmbed:
+      type: object
+      description: An oEmbed 1.0 rich response for a juvlabs.com URL.
+      properties:
+        version:
+          type: string
+          examples:
+          - '1.0'
+          description: The oEmbed version number.
+        provider_name:
+          type: string
+          examples:
+          - Juvenescence
+          description: The provider name.
+        provider_url:
+          type: string
+          format: uri
+          description: The provider URL.
+        author_name:
+          type: string
+          description: The author name.
+        title:
+          type: string
+          description: The resource title.
+        type:
+          type: string
+          description: The resource type.
+        width:
+          type: integer
+          description: The embed width.
+        height:
+          type: integer
+          description: The embed height.
+        html:
+          type: string
+          description: The embed HTML.
+    Links:
+      type: object
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`,
+        `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
+    Error:
+      type: object
+      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors
+        are returned as application/json with this shape.
+      required:
+      - code
+      - message
+      - data
+      properties:
+        code:
+          type: string
+          description: A machine-readable error code.
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_no_route
+          - rest_forbidden
+        message:
+          type: string
+          description: A human-readable error message.
+        data:
+          type: object
+          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details`
+            keyed by the offending parameter.
+          properties:
+            status:
+              type: integer
+              description: The HTTP status code.
+            params:
+              type: object
+              additionalProperties:
+                type: string
+              description: Per-parameter validation messages.
+            details:
+              type: object
+              additionalProperties: true
+              description: Per-parameter structured validation detail.
+          additionalProperties: true
+  responses:
+    BadRequest:
+      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params`
+        map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidParam:
+              value:
+                code: rest_invalid_param
+                message: 'Invalid parameter(s): per_page'
+                data:
+                  status: 400
+                  params:
+                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when
+        `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401
+    NotFound:
+      description: No such resource, or no route matching the URL and method.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidId:
+              value:
+                code: rest_post_invalid_id
+                message: Invalid post ID.
+                data:
+                  status: 404
+            noRoute:
+              value:
+                code: rest_no_route
+                message: No route was found matching the URL and request method.
+                data:
+                  status: 404

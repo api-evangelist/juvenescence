@@ -1,0 +1,27 @@
+generated: '2026-08-23'
+method: searched
+source: https://juvlabs.com/
+plan_count: 0
+currency: null
+plans: []
+note: >-
+  Juvenescence publishes no pricing of any kind for an API, and no pricing page at all. It is a
+  clinical-stage drug developer, not a software vendor: its site navigation is Science, Our Approach,
+  Team, Pipeline, News and Contact Us, with no product, plans, pricing, signup or login surface. The
+  content API profiled in this repository is the site's own WordPress REST surface, served
+  anonymously and free, with no commercial tier attached to it. This is an honest zero rather than an
+  omitted file — no plan exists to record. A `refund-policy` page is published, but it is a leftover
+  from the company's earlier consumer supplements business and names no current product or price.
+evidence:
+- url: https://juvlabs.com/
+  status: 200
+  finding: No pricing or plans link in the site navigation or footer.
+- url: https://juvlabs.com/wp-json/wp/v2/pages?per_page=100
+  status: 200
+  finding: >-
+    All 35 published pages enumerated; none is a pricing, plans, products or signup page. The only
+    commerce-adjacent page is /refund-policy/.
+- url: https://juvlabs.com/refund-policy/
+  status: 200
+  finding: Legacy consumer-supplements refund policy; no current product, plan or price.
+checked: '2026-08-23'

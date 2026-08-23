@@ -1,0 +1,126 @@
+generated: '2026-08-23'
+method: derived
+source: >-
+  openapi/_original/juvenescence-content-openapi.yml plus observed response headers and error bodies
+  from live anonymous calls to https://juvlabs.com/wp-json on 2026-08-23
+docs: https://developer.wordpress.org/rest-api/using-the-rest-api/
+summary: >-
+  Cross-cutting runtime semantics for the Juvenescence content API. This is a READ-ONLY public
+  surface: 26 operations, all GET, no public write path. Several dimensions below are therefore
+  honestly `na` rather than absent.
+auth:
+  style: none
+  detail: Anonymous read. See authentication/juvenescence-authentication.yml.
+pagination:
+  style: page-number
+  params:
+    page: 1-based page number, default 1
+    per_page: page size, default 10, minimum 1, maximum 100
+    offset: alternative absolute offset, supported on most collections
+  response_headers:
+    X-WP-Total: total items in the unpaginated collection
+    X-WP-TotalPages: total pages available at the current per_page
+    Link: RFC 8288 links carrying rel="next" and rel="prev"
+  observed:
+    route: /wp/v2/posts?per_page=2
+    x_wp_total: 57
+    x_wp_totalpages: 29
+    link: '<https://juvlabs.com/wp-json/wp/v2/posts?per_page=2&page=2>; rel="next"'
+  note: >-
+    Exceeding per_page=100 is a hard 400 with code rest_invalid_param, not a silent clamp — an agent
+    can trust the boundary.
+field_selection:
+  supported: true
+  params:
+    _fields: comma-separated allow-list of response fields
+    _embed: inline embedded resources (author, featured media, terms) via the _links relations
+    context: view | embed | edit — `edit` requires credentials and 401s anonymously
+  note: >-
+    `_fields` and `_embed` are the two levers that matter for agent cost here: a bare
+    /wp/v2/posts?per_page=1 response is ~10 KB, and _fields trims it to the handful of keys actually
+    needed.
+filtering:
+  free_text: search
+  exact_match: search_semantics=exact
+  date_ranges: after, before, modified_after, modified_before (ISO 8601)
+  id_sets: include, exclude
+  taxonomy: categories, categories_exclude, tags, tags_exclude, portfolio_category, tax_relation
+  sorting: order (asc|desc) plus orderby with a per-collection enum
+error_envelope:
+  format: wordpress-rest
+  rfc9457: false
+  media_type: application/json
+  shape: '{ "code": string, "message": string, "data": { "status": int, "params": object, "details": object } }'
+  note: >-
+    NOT RFC 9457 problem+json. There is no `type` URI and no problem registry; `code` is the stable
+    machine-readable discriminator. See errors/juvenescence-problem-types.yml.
+versioning:
+  scheme: uri-namespace
+  current: wp/v2
+  detail: >-
+    The API version is the REST namespace segment. 25 namespaces are registered on this install; the
+    content contract lives in wp/v2. See lifecycle/juvenescence-lifecycle.yml.
+request_id_tracing:
+  supported: false
+  note: >-
+    No request-id or correlation header is returned. The only per-request identifiers observed are
+    Cloudflare's cf-ray and the WP Engine cache markers (x-cache, x-cache-group, x-cacheable), which
+    are infrastructure telemetry, not an application trace id an agent can quote back to support.
+caching:
+  supported: true
+  cache_control: max-age=600, must-revalidate
+  headers_observed:
+  - cache-control
+  - last-modified
+  - x-cacheable
+  - x-cache
+  - cf-cache-status
+  conditional_requests: last-modified is returned; no ETag was observed
+  note: Collection responses are cached for 10 minutes at the edge (WP Engine "SHORT" cacheability).
+rate_limit_signaling:
+  supported: false
+  detail: >-
+    No X-RateLimit-*, RateLimit-* or Retry-After header was returned on any observed response, and no
+    limit is documented. See rate-limits/juvenescence-rate-limits.yml.
+content_negotiation:
+  media_type: application/json; charset=UTF-8
+  alternatives: oEmbed supports format=json or format=xml
+security_headers:
+  x-content-type-options: nosniff
+  x-robots-tag: noindex
+  note: >-
+    The API responses are marked noindex, which is a signal that this surface is site plumbing rather
+    than a product the company intends to be discovered.
+idempotency:
+  supported: na
+  reason: >-
+    No public write surface. All 26 modelled operations are GET and therefore idempotent by HTTP
+    definition; there is no Idempotency-Key header, no request-replay window and no de-duplication
+    contract to record, because there is nothing to double-fire. No `Idempotency` pointer is emitted
+    in apis.yml for this reason.
+dry_run_mode:
+  supported: na
+  reason: No write surface to rehearse.
+reversibility:
+  applicable: false
+  grade: na
+  reason: >-
+    Read-only API. Every modelled operation is a GET; there is no create, update, delete, charge,
+    send or schedule an agent could take that would need taking back, so there is no reversal
+    operation to name and no window to state. This is an honest `na`, not a missing capability: the
+    dimension leaves the denominator rather than scoring zero.
+  write_surfaces: []
+  note: >-
+    Write operations ARE registered on these routes for authenticated site editors, and WordPress
+    does ship a real reversal model for them — the trash/restore cycle (`status=trash` then restore,
+    with the default 30-day EMPTY_TRASH_DAYS purge) and per-post revisions at
+    /wp/v2/posts/{parent}/revisions. None of that is reachable without credentials, Juvenescence
+    publishes no document stating its own trash-retention setting, and this profile deliberately does
+    not model the authenticated surface — so no window is asserted here. NEVER infer the 30-day
+    default as this site's stated window; it is a WordPress default, not a Juvenescence commitment.
+cross_references:
+  errors: errors/juvenescence-problem-types.yml
+  lifecycle: lifecycle/juvenescence-lifecycle.yml
+  authentication: authentication/juvenescence-authentication.yml
+  rate_limits: rate-limits/juvenescence-rate-limits.yml
+  data_model: data-model/juvenescence-data-model.yml

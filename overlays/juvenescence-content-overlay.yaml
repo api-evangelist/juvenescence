@@ -1,0 +1,66 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Juvenescence Content API
+  version: 1.0.0
+extends: openapi/_original/juvenescence-content-openapi.yml
+x-generated: '2026-08-23'
+x-method: generated
+x-source: >-
+  API Evangelist enrichment pipeline. Captures the annotations this profile adds on top of the
+  contract derived from https://juvlabs.com/wp-json/, so the derived specification is never mutated
+  in place.
+actions:
+- target: $.info
+  update:
+    x-apievangelist-profile: https://apis.io/provider/juvenescence/
+    x-apievangelist-derived-from: https://juvlabs.com/wp-json/
+    x-apievangelist-surface-class: cms-content-api
+    x-apievangelist-developer-program: false
+    x-apievangelist-note: >-
+      Juvenescence runs no developer program. This contract describes the anonymously readable
+      WordPress REST surface behind its corporate site, derived and verified by API Evangelist, not
+      authored or endorsed by Juvenescence Limited.
+- target: $.info
+  update:
+    x-artifacts:
+      authentication: authentication/juvenescence-authentication.yml
+      conventions: conventions/juvenescence-conventions.yml
+      errors: errors/juvenescence-problem-types.yml
+      lifecycle: lifecycle/juvenescence-lifecycle.yml
+      conformance: conformance/juvenescence-conformance.yml
+      data_model: data-model/juvenescence-data-model.yml
+      rate_limits: rate-limits/juvenescence-rate-limits.yml
+      plans: plans/juvenescence-plans-pricing.yml
+      packages: packages/juvenescence-packages.yml
+      mcp: mcp/juvenescence-mcp.yml
+      skills: skills/_index.yml
+      llms_txt: llms/juvenescence-llms.txt
+- target: $.paths['/wp/v2/search'].get
+  update:
+    x-agent-entry-point: true
+    x-agent-note: >-
+      Preferred first call for an agent. Resolves a free-text question to IDs and URLs across posts,
+      pages, the portfolio type and taxonomy terms in one request, avoiding a walk of every collection.
+- target: $.paths['/'].get
+  update:
+    x-agent-note: >-
+      The discovery document this whole specification was derived from. Re-read it to detect new
+      namespaces — the appearance of an `mcp` namespace here would mean Juvenescence had gained an
+      agent surface.
+- target: $.paths['/wp/v2/posts'].get
+  update:
+    x-response-cost: >-
+      A single post is roughly 10 KB of JSON with full rendered HTML. Use _fields to trim, and prefer
+      per_page with _fields over fetching items individually.
+- target: $.paths['/wp/v2/portfolio'].get
+  update:
+    x-empty-at-derivation: true
+    x-agent-note: >-
+      Registered, public and REST-exposed, but returned X-WP-Total: 0 on 2026-08-23. Juvenescence's
+      portfolio companies are currently carried in page copy and in the post-tag vocabulary, not here.
+- target: $.components.schemas.Error
+  update:
+    x-branch-on: code
+    x-agent-note: >-
+      Branch on `code`, never on `message` — the message is localised to the site locale (en-GB) and
+      is not a stable contract.

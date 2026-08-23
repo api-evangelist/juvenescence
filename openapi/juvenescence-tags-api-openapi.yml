@@ -1,0 +1,360 @@
+openapi: 3.2.0
+info:
+  title: Juvenescence Content API (WordPress REST API) Tags API
+  version: wp/v2
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived
+    from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's
+    news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35
+    corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag
+    taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly
+    queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored
+    specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site
+    itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23.
+    Write operations are registered on the same routes but are authenticated administrative endpoints, not a public
+    API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`,
+    `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the
+    whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication
+    and conformance artifacts instead.
+  contact:
+    name: Juvenescence Limited
+    url: https://juvlabs.com/contact-us/
+  termsOfService: https://juvlabs.com/terms-of-service/
+  x-derived-from: https://juvlabs.com/wp-json/
+  x-derived-on: '2026-08-23'
+  x-api-evangelist-note: Derived by the API Evangelist enrichment pipeline from the provider-published WordPress
+    REST route index at https://juvlabs.com/wp-json/ and https://juvlabs.com/wp-json/wp/v2; not authored or endorsed
+    by Juvenescence Limited. Every operation was verified to return HTTP 200 without credentials on 2026-08-23.
+servers:
+- url: https://juvlabs.com/wp-json
+  description: Production
+security:
+- {}
+tags:
+- name: Tags
+  description: Post tags, dominated by Juvenescence portfolio-company names
+paths:
+  /wp/v2/tags:
+    get:
+      operationId: listTags
+      tags:
+      - Tags
+      summary: List post tags
+      description: Lists the 25 registered post tags. The vocabulary is dominated by Juvenescence portfolio companies
+        and collaborators — AgeX, Chrysea Labs, Evgen Pharma, LyGenesis, MDI Therapeutics, Morphoceuticals, Napa
+        Therapeutics, NetraMark Corp., Relation Therapeutics, Selah Therapeutics, Souvien Therapeutics and The Buck
+        Institute — alongside a legacy consumer-nutrition set (Keto, Ketosis 101, Ketone Science, Intermittent Fasting,
+        Meal Replacement, Protein, Vegan, Recipe) from the company's earlier supplements business. Only 5 tags carry
+        posts.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of tags.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Term'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/orderAsc'
+      - $ref: '#/components/parameters/termOrderby'
+      - $ref: '#/components/parameters/hide_empty'
+      - $ref: '#/components/parameters/termPost'
+      - $ref: '#/components/parameters/slugFilter'
+      - $ref: '#/components/parameters/offset'
+  /wp/v2/tags/{id}:
+    get:
+      operationId: getTag
+      tags:
+      - Tags
+      summary: Get a post tag
+      description: Retrieves a single post tag by ID, including its post `count` and archive `link`.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested tag.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Term'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+components:
+  parameters:
+    context:
+      name: context
+      in: query
+      description: Scope under which the request is made; determines fields present in response.
+      schema:
+        type: string
+        default: view
+        enum:
+        - view
+        - embed
+        - edit
+    exclude:
+      name: exclude
+      in: query
+      description: Ensure result set excludes specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    hide_empty:
+      name: hide_empty
+      in: query
+      description: Whether to hide terms not assigned to any posts.
+      schema:
+        type: boolean
+        default: false
+    id:
+      name: id
+      in: path
+      description: Unique identifier for the resource.
+      schema:
+        type: integer
+      required: true
+    include:
+      name: include
+      in: query
+      description: Limit result set to specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    offset:
+      name: offset
+      in: query
+      description: Offset the result set by a specific number of items.
+      schema:
+        type: integer
+    orderAsc:
+      name: orderAsc
+      in: query
+      description: Order sort attribute ascending or descending.
+      schema:
+        type: string
+        default: asc
+        enum:
+        - asc
+        - desc
+    page:
+      name: page
+      in: query
+      description: Current page of the collection.
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    per_page:
+      name: per_page
+      in: query
+      description: Maximum number of items to be returned in result set.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    slugFilter:
+      name: slugFilter
+      in: query
+      description: Limit result set to items with one or more specific slugs.
+      schema:
+        type: array
+        items:
+          type: string
+    termOrderby:
+      name: termOrderby
+      in: query
+      description: Sort collection by term attribute.
+      schema:
+        type: string
+        default: name
+        enum:
+        - id
+        - include
+        - name
+        - slug
+        - include_slugs
+        - term_group
+        - description
+        - count
+    termPost:
+      name: termPost
+      in: query
+      description: Limit result set to terms assigned to a specific post.
+      schema:
+        type: integer
+  schemas:
+    Error:
+      type: object
+      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors
+        are returned as application/json with this shape.
+      required:
+      - code
+      - message
+      - data
+      properties:
+        code:
+          type: string
+          description: A machine-readable error code.
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_no_route
+          - rest_forbidden
+        message:
+          type: string
+          description: A human-readable error message.
+        data:
+          type: object
+          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details`
+            keyed by the offending parameter.
+          properties:
+            status:
+              type: integer
+              description: The HTTP status code.
+            params:
+              type: object
+              additionalProperties:
+                type: string
+              description: Per-parameter validation messages.
+            details:
+              type: object
+              additionalProperties: true
+              description: Per-parameter structured validation detail.
+          additionalProperties: true
+    Links:
+      type: object
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`,
+        `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
+    Term:
+      type: object
+      description: A taxonomy term (category, post tag, or portfolio category).
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the term.
+        count:
+          type: integer
+          description: Number of published posts for the term.
+        description:
+          type: string
+          description: HTML description of the term.
+        link:
+          type: string
+          format: uri
+          description: URL of the term archive on juvlabs.com.
+        name:
+          type: string
+          description: HTML title for the term.
+          examples:
+          - Press Releases
+          - In the News
+          - Juv on the Road
+          - Publications
+          - Videos
+        slug:
+          type: string
+          description: An alphanumeric identifier for the term unique to its type.
+        taxonomy:
+          type: string
+          description: Type attribution for the term.
+          examples:
+          - category
+          - post_tag
+          - portfolio_category
+        parent:
+          type: integer
+          description: The parent term ID. Hierarchical taxonomies only.
+        _links:
+          $ref: '#/components/schemas/Links'
+  responses:
+    BadRequest:
+      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params`
+        map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidParam:
+              value:
+                code: rest_invalid_param
+                message: 'Invalid parameter(s): per_page'
+                data:
+                  status: 400
+                  params:
+                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
+    NotFound:
+      description: No such resource, or no route matching the URL and method.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidId:
+              value:
+                code: rest_post_invalid_id
+                message: Invalid post ID.
+                data:
+                  status: 404
+            noRoute:
+              value:
+                code: rest_no_route
+                message: No route was found matching the URL and request method.
+                data:
+                  status: 404
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when
+        `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401

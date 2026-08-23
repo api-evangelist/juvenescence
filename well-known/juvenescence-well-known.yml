@@ -1,0 +1,69 @@
+generated: '2026-08-23'
+method: probed
+source: live GET of each /.well-known/ path on the juvlabs.com host
+note: >-
+  Every /.well-known/ path probed on juvlabs.com returned 404. This file records a measured ABSENCE,
+  not a served surface, so no WellKnown or SecurityTxt pointer is emitted in apis.yml. Two distinct
+  404 bodies were observed: /.well-known/security.txt is answered by the web server with a 548-byte
+  Apache-style "404 Not Found" page, while every other path falls through to the WordPress theme 404
+  template (~105 KB of HTML). Neither is a document. juvlabs.com runs WordPress on WP Engine behind
+  Cloudflare and advertises no authentication scheme in its own REST site index
+  (https://juvlabs.com/wp-json/ returns "authentication": []), which is consistent with there being
+  no OAuth or OIDC surface to discover here.
+hit_count: 0
+hosts:
+- host: https://juvlabs.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/ai-plugin.json
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
+soft_404_control:
+  note: >-
+    Control probe confirming juvlabs.com does NOT answer 200 for arbitrary /.well-known/* paths — the
+    host returns a real 404 status, so the absences above are genuine rather than a catch-all masking
+    a served surface.
+  probed: https://juvlabs.com/.well-known/api-catalog
+  status: 404
+  bytes: 105751
+related_hosts:
+- host: https://ro5.ai
+  note: >-
+    ro5.ai, the domain of Ro5 Inc. — the AI drug-discovery company Juvenescence acquired in June 2025 —
+    is now a blanket HTTP 301 to https://juvlabs.com/. Every /.well-known/ path on it therefore
+    resolves to 200 with the 252 KB juvlabs.com homepage HTML. These are redirect catch-alls, NOT
+    documents, and are explicitly rejected here: no agent card, security.txt or discovery document is
+    served on ro5.ai.
+  probed:
+  - path: /.well-known/agent-card.json
+    status: 200
+    final_url: https://juvlabs.com/
+    content_type: text/html; charset=UTF-8
+    verdict: rejected-html-catch-all
+  - path: /.well-known/agent.json
+    status: 200
+    final_url: https://juvlabs.com/
+    content_type: text/html; charset=UTF-8
+    verdict: rejected-html-catch-all
+  - path: /.well-known/security.txt
+    status: 200
+    final_url: https://juvlabs.com/
+    content_type: text/html; charset=UTF-8
+    verdict: rejected-html-catch-all

@@ -1,0 +1,488 @@
+openapi: 3.2.0
+info:
+  title: Juvenescence Content API (WordPress REST API) Media API
+  version: wp/v2
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived
+    from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's
+    news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35
+    corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag
+    taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly
+    queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored
+    specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site
+    itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23.
+    Write operations are registered on the same routes but are authenticated administrative endpoints, not a public
+    API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`,
+    `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the
+    whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication
+    and conformance artifacts instead.
+  contact:
+    name: Juvenescence Limited
+    url: https://juvlabs.com/contact-us/
+  termsOfService: https://juvlabs.com/terms-of-service/
+  x-derived-from: https://juvlabs.com/wp-json/
+  x-derived-on: '2026-08-23'
+  x-api-evangelist-note: Derived by the API Evangelist enrichment pipeline from the provider-published WordPress
+    REST route index at https://juvlabs.com/wp-json/ and https://juvlabs.com/wp-json/wp/v2; not authored or endorsed
+    by Juvenescence Limited. Every operation was verified to return HTTP 200 without credentials on 2026-08-23.
+servers:
+- url: https://juvlabs.com/wp-json
+  description: Production
+security:
+- {}
+tags:
+- name: Media
+  description: Media library items (logos, leadership portraits, poster and press imagery)
+paths:
+  /wp/v2/media:
+    get:
+      operationId: listMedia
+      tags:
+      - Media
+      summary: List media items
+      description: Lists the 466-item media library — the Juvenescence logo and sub-mark, leadership portraits,
+        press and conference imagery, and documents. `media_details` carries the generated size variants for each
+        image.
+      security:
+      - {}
+      responses:
+        '200':
+          description: A page of media items.
+          headers:
+            X-WP-Total:
+              description: Total number of items in the unpaginated collection.
+              schema:
+                type: integer
+            X-WP-TotalPages:
+              description: Total number of pages available at the current `per_page`.
+              schema:
+                type: integer
+            Link:
+              description: RFC 8288 pagination links carrying `rel="next"` and `rel="prev"`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - $ref: '#/components/parameters/context'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - $ref: '#/components/parameters/search'
+      - $ref: '#/components/parameters/after'
+      - $ref: '#/components/parameters/before'
+      - $ref: '#/components/parameters/modified_after'
+      - $ref: '#/components/parameters/modified_before'
+      - $ref: '#/components/parameters/author'
+      - $ref: '#/components/parameters/author_exclude'
+      - $ref: '#/components/parameters/exclude'
+      - $ref: '#/components/parameters/include'
+      - $ref: '#/components/parameters/search_semantics'
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/order'
+      - $ref: '#/components/parameters/postOrderby'
+      - $ref: '#/components/parameters/parentFilter'
+      - $ref: '#/components/parameters/parent_exclude'
+      - $ref: '#/components/parameters/search_columns'
+      - $ref: '#/components/parameters/slugFilter'
+      - name: status
+        in: query
+        description: Limit result set to attachments assigned one or more statuses.
+        schema:
+          type: array
+          items:
+            type: string
+          default:
+          - inherit
+      - name: media_type
+        in: query
+        description: Limit result set to attachments of a particular media type or media types.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - image
+            - video
+            - text
+            - application
+            - audio
+            - file
+      - name: mime_type
+        in: query
+        description: Limit result set to attachments of a particular MIME type or MIME types.
+        schema:
+          type: array
+          items:
+            type: string
+  /wp/v2/media/{id}:
+    get:
+      operationId: getMediaItem
+      tags:
+      - Media
+      summary: Get a media item
+      description: Retrieves a single media library item by ID, including `source_url` and the generated size variants
+        in `media_details`.
+      security:
+      - {}
+      responses:
+        '200':
+          description: The requested media item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/context'
+components:
+  parameters:
+    after:
+      name: after
+      in: query
+      description: Limit response to posts published after a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    author:
+      name: author
+      in: query
+      description: Limit result set to posts assigned to specific authors.
+      schema:
+        type: array
+        items:
+          type: integer
+    author_exclude:
+      name: author_exclude
+      in: query
+      description: Ensure result set excludes posts assigned to specific authors.
+      schema:
+        type: array
+        items:
+          type: integer
+    before:
+      name: before
+      in: query
+      description: Limit response to posts published before a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    context:
+      name: context
+      in: query
+      description: Scope under which the request is made; determines fields present in response.
+      schema:
+        type: string
+        default: view
+        enum:
+        - view
+        - embed
+        - edit
+    exclude:
+      name: exclude
+      in: query
+      description: Ensure result set excludes specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    id:
+      name: id
+      in: path
+      description: Unique identifier for the resource.
+      schema:
+        type: integer
+      required: true
+    include:
+      name: include
+      in: query
+      description: Limit result set to specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    modified_after:
+      name: modified_after
+      in: query
+      description: Limit response to posts modified after a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    modified_before:
+      name: modified_before
+      in: query
+      description: Limit response to posts modified before a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    offset:
+      name: offset
+      in: query
+      description: Offset the result set by a specific number of items.
+      schema:
+        type: integer
+    order:
+      name: order
+      in: query
+      description: Order sort attribute ascending or descending.
+      schema:
+        type: string
+        default: desc
+        enum:
+        - asc
+        - desc
+    page:
+      name: page
+      in: query
+      description: Current page of the collection.
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    parentFilter:
+      name: parentFilter
+      in: query
+      description: Limit result set to items with particular parent IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    parent_exclude:
+      name: parent_exclude
+      in: query
+      description: Limit result set to all items except those of a particular parent ID.
+      schema:
+        type: array
+        items:
+          type: integer
+    per_page:
+      name: per_page
+      in: query
+      description: Maximum number of items to be returned in result set.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+    postOrderby:
+      name: postOrderby
+      in: query
+      description: Sort collection by post attribute.
+      schema:
+        type: string
+        default: date
+        enum:
+        - author
+        - date
+        - id
+        - include
+        - modified
+        - parent
+        - relevance
+        - slug
+        - include_slugs
+        - title
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    search_columns:
+      name: search_columns
+      in: query
+      description: Array of column names to be searched.
+      schema:
+        type: array
+        items:
+          type: string
+    search_semantics:
+      name: search_semantics
+      in: query
+      description: How to interpret the search input.
+      schema:
+        type: string
+        enum:
+        - exact
+    slugFilter:
+      name: slugFilter
+      in: query
+      description: Limit result set to items with one or more specific slugs.
+      schema:
+        type: array
+        items:
+          type: string
+  schemas:
+    Error:
+      type: object
+      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors
+        are returned as application/json with this shape.
+      required:
+      - code
+      - message
+      - data
+      properties:
+        code:
+          type: string
+          description: A machine-readable error code.
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_no_route
+          - rest_forbidden
+        message:
+          type: string
+          description: A human-readable error message.
+        data:
+          type: object
+          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details`
+            keyed by the offending parameter.
+          properties:
+            status:
+              type: integer
+              description: The HTTP status code.
+            params:
+              type: object
+              additionalProperties:
+                type: string
+              description: Per-parameter validation messages.
+            details:
+              type: object
+              additionalProperties: true
+              description: Per-parameter structured validation detail.
+          additionalProperties: true
+    Links:
+      type: object
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`,
+        `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
+    MediaItem:
+      type: object
+      description: A media library item — logo, leadership portrait, press or poster image, or document.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the attachment.
+        date:
+          type: string
+          format: date-time
+          description: The date the attachment was published.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the attachment.
+        type:
+          type: string
+          description: Type of post.
+          examples:
+          - attachment
+        link:
+          type: string
+          format: uri
+          description: URL to the attachment page.
+        title:
+          $ref: '#/components/schemas/Rendered'
+        author:
+          type: integer
+          description: The ID for the author of the attachment.
+        caption:
+          $ref: '#/components/schemas/Rendered'
+        alt_text:
+          type: string
+          description: Alternative text to display when attachment is not displayed.
+        media_type:
+          type: string
+          description: Attachment type.
+          examples:
+          - image
+          - file
+        mime_type:
+          type: string
+          description: The attachment MIME type.
+          examples:
+          - image/png
+          - image/jpeg
+        media_details:
+          type: object
+          description: Details about the media file, specific to its type (width, height, filesize, and the generated
+            size variants).
+          additionalProperties: true
+        post:
+          type:
+          - integer
+          - 'null'
+          description: The ID for the associated post of the attachment.
+        source_url:
+          type: string
+          format: uri
+          description: URL to the original attachment file.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Rendered:
+      type: object
+      description: A WordPress rendered-content object.
+      properties:
+        rendered:
+          type: string
+          description: HTML for the field, transformed for display.
+  responses:
+    BadRequest:
+      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params`
+        map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidParam:
+              value:
+                code: rest_invalid_param
+                message: 'Invalid parameter(s): per_page'
+                data:
+                  status: 400
+                  params:
+                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
+    NotFound:
+      description: No such resource, or no route matching the URL and method.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidId:
+              value:
+                code: rest_post_invalid_id
+                message: Invalid post ID.
+                data:
+                  status: 404
+            noRoute:
+              value:
+                code: rest_no_route
+                message: No route was found matching the URL and request method.
+                data:
+                  status: 404
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when
+        `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401

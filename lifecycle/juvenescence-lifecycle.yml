@@ -1,0 +1,87 @@
+generated: '2026-08-23'
+method: probed
+source: >-
+  https://juvlabs.com/wp-json/ (namespace list), live probes of juvlabs.com and the ro5.ai hosts, and
+  https://github.com/Ro5-ai/hydrascreen — all on 2026-08-23
+summary: >-
+  Juvenescence operates no developer program, so there is no published versioning policy, no
+  deprecation policy, no SLA and no status page. What CAN be stated is the versioning scheme the
+  contract itself carries, and one concrete retirement: the HydraScreen API that arrived with the Ro5
+  acquisition is no longer reachable.
+versioning:
+  scheme: uri-namespace
+  current: wp/v2
+  docs: https://developer.wordpress.org/rest-api/
+  policy_published: false
+  detail: >-
+    The version is the REST namespace path segment. wp/v2 is the only content namespace registered.
+    Juvenescence publishes no statement about how or when it would move off it; the cadence is
+    whatever the upstream WordPress project and the site's plugin set dictate, which is not a
+    commitment an integrator can rely on.
+deprecation:
+  policy_url: null
+  policy_published: false
+  sunset_header: false
+  deprecation_header: false
+  detail: >-
+    No RFC 8594 Sunset or Deprecation header was returned on any observed response, and no deprecation
+    policy page exists. No `Deprecation` pointer is emitted in apis.yml.
+sla:
+  url: null
+  published: false
+  uptime_target: null
+status_page:
+  url: null
+  published: false
+  detail: >-
+    No status page was found. status.juvlabs.com does not resolve, and neither juvlabs.com nor any
+    Juvenescence property links to a hosted status page. No `StatusPage` pointer is emitted in
+    apis.yml.
+changelog:
+  url: null
+  published: false
+  detail: >-
+    Juvenescence publishes a dated NEWS stream at https://juvlabs.com/news/ — 57 posts across press
+    releases, in-the-news pickups, conference reports, publications and videos — but it is corporate
+    news, not an API changelog: it carries no version numbers, no breaking-change notices and no
+    additions list. Recording it as a ChangeLog would misrepresent it, so no changelog/ artifact and
+    no `ChangeLog` pointer are emitted. The news stream is wired as `Blog` instead.
+deprecated_operations: []
+retired_surfaces:
+- name: HydraScreen API
+  vendor: Ro5 Inc.
+  acquired_by: Juvenescence Limited
+  acquisition_announced: '2025-06-05'
+  acquisition_source: >-
+    https://juvlabs.com/news/press-releases/juvenescence-acquires-ai-drug-discovery-company-ro5-to-boost-rd-capabilities-and-drive-pipeline-of-medicines-to-extend-healthy-lifespan/
+  base_url: https://hydrascreen-api.ro5.ai/v2
+  operations_documented_by_client:
+  - POST /v2/email/verify — request a JWT by email and organisation
+  - POST /v2/upload-pdb — upload a protein PDB file, returns an S3 key
+  - POST /v2/upload-sdf — upload a docked ligand SDF/PDB/MOL2 file against a protein S3 key
+  - POST /v2/invocation — run affinity and pose-confidence inference over protein-ligand pairs
+  client: https://github.com/Ro5-ai/hydrascreen
+  client_last_release: '2023-12-18'
+  client_last_version: 0.0.8
+  status: retired
+  evidence:
+  - probe: DNS A/AAAA lookup for hydrascreen-api.ro5.ai
+    result: NXDOMAIN
+    checked: '2026-08-23'
+  - probe: DNS A/AAAA lookup for hydrascreen.ro5.ai
+    result: NXDOMAIN
+    checked: '2026-08-23'
+  - probe: GET https://ro5.ai/
+    result: 301 to https://juvlabs.com/
+    checked: '2026-08-23'
+  note: >-
+    No OpenAPI is emitted for this surface. The endpoint list above is read from Juvenescence's own
+    open-source client and is recorded as history; the host does not resolve, so publishing a contract
+    for it would advertise a callable API that no longer exists. Juvenescence has published no
+    retirement or sunset notice for it — the surface simply stopped resolving, which is the finding.
+- name: ro5.ai
+  status: absorbed
+  detail: >-
+    The whole ro5.ai domain is now a blanket HTTP 301 to https://juvlabs.com/, including every
+    /.well-known/ path. Any 200 observed on ro5.ai is the juvlabs.com homepage, not a document.
+  checked: '2026-08-23'

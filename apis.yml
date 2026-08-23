@@ -1,18 +1,240 @@
 aid: juvenescence
 name: Juvenescence
-description: 'Juvenescence is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  Juvenescence Limited is a clinical-stage, AI-enabled drug development company headquartered in
+  Ramsey, Isle of Man, with operations in the United Kingdom, the United States and Abu Dhabi, founded
+  by Jim Mellon, Dr Gregory Bailey and Dr Declan Doogan and led by CEO Dr Richard Marshall CBE. It
+  develops medicines that target core mechanisms of aging in order to prevent rather than only treat
+  age-related disease, working across small molecules, biologics and cell therapies. Its lead programme
+  is the PAI-1 inhibitor MDI-2517, which completed a Phase 1 trial with a Phase 2 proof-of-concept study
+  planned in metabolic and fibrotic disease, alongside a CD38 inhibitor programme run with the Buck
+  Institute for Research on Aging. The company closed a $76m first tranche of Series B-1 financing led
+  by Abu Dhabi's M42 in 2025 and acquired the AI drug-discovery company Ro5 Inc. in June 2025, bringing
+  in the HydraScreen structure-based screening and ADMET modelling stack. Juvenescence has founded or
+  capitalised a portfolio of longevity biotechs including LyGenesis, Napa Therapeutics, Souvien
+  Therapeutics, Morphoceuticals, Relation Therapeutics, Chrysea Labs, Selah Therapeutics and BYOMass.
+  Juvenescence runs no developer program and publishes no product API. The machine-readable surfaces it
+  does expose are the anonymously readable WordPress REST content API behind juvlabs.com, a
+  provider-published llms.txt, and the open-source HydraScreen and bio2d research code released under
+  the Ro5-ai GitHub organisation.
+image: https://juvlabs.com/wp-content/uploads/2024/07/juvenescence-logo-green.png
 url: https://raw.githubusercontent.com/api-evangelist/juvenescence/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
-specificationVersion: '0.20'
+x-tier: profiled
+x-tier-reason: enriched
+specificationVersion: '0.23'
 created: '2026-08-23'
 modified: '2026-08-23'
 tags:
 - Company
-apis: []
+- Biotechnology
+- Pharmaceuticals
+- Longevity
+- Drug Discovery
+- Life Sciences
+- Clinical Trials
+- Artificial Intelligence
+- Aging
+- content-api
+tags_raw:
+- Company
+- biotechnology
+- pharmaceuticals
+- longevity
+- drug-discovery
+- life-sciences
+- clinical-trials
+- artificial-intelligence
+- aging
+- content-api
+apis:
+- aid: juvenescence:juvenescence-posts-api
+  name: Juvenescence Posts API
+  description: >-
+    Juvenescence's news stream — 57 published posts across Press Releases, In the News, Juv on the
+    Road, Publications and Videos — read from the WordPress REST content API behind juvlabs.com.
+  humanURL: https://juvlabs.com/news/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Posts
+  - News
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-posts-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-pages-api
+  name: Juvenescence Pages API
+  description: >-
+    The 35 published corporate, science, pipeline, leadership-biography and policy pages of
+    juvlabs.com, read from the WordPress REST content API.
+  humanURL: https://juvlabs.com/our-approach/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Pages
+  - Content
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-pages-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-media-api
+  name: Juvenescence Media API
+  description: >-
+    The 466-item juvlabs.com media library — brand marks, leadership portraits, press and conference
+    imagery — with per-item MIME type, source URL and generated size variants.
+  humanURL: https://developer.wordpress.org/rest-api/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Media
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-media-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-categories-api
+  name: Juvenescence Categories API
+  description: >-
+    The 7 post categories that organise the Juvenescence news stream, five of which carry posts.
+  humanURL: https://juvlabs.com/news/category/press-releases/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Categories
+  - Taxonomy
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-categories-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-tags-api
+  name: Juvenescence Tags API
+  description: >-
+    The 25 post tags on juvlabs.com, a vocabulary dominated by Juvenescence portfolio companies and
+    research collaborators alongside a legacy consumer-nutrition set.
+  humanURL: https://juvlabs.com/news/tag/juvenescence/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Tags
+  - Taxonomy
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-tags-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-comments-api
+  name: Juvenescence Comments API
+  description: >-
+    The comments collection on juvlabs.com. Registered and anonymously readable, but empty — the site
+    does not use comments.
+  humanURL: https://developer.wordpress.org/rest-api/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Comments
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-comments-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-search-api
+  name: Juvenescence Search API
+  description: >-
+    Cross-content search over Juvenescence posts, pages, the portfolio type and taxonomy terms — the
+    single best entry point for an agent that needs to find material without walking every collection.
+  humanURL: https://developer.wordpress.org/rest-api/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Search
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-search-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-portfolio-api
+  name: Juvenescence Portfolio API
+  description: >-
+    The site's registered `portfolio` custom post type and its `portfolio_category` taxonomy.
+    Registered, public and REST-exposed, but empty at derivation — Juvenescence's portfolio companies
+    are currently carried in page copy and post tags rather than in this type.
+  humanURL: https://developer.wordpress.org/rest-api/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Portfolio
+  - Taxonomy
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-portfolio-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
+- aid: juvenescence:juvenescence-discovery-api
+  name: Juvenescence Discovery API
+  description: >-
+    The juvlabs.com REST discovery surface — site index, `wp/v2` namespace route index with per-argument
+    schemas, registered content types, taxonomies and statuses, plus oEmbed URL resolution.
+  humanURL: https://juvlabs.com/wp-json/
+  baseURL: https://juvlabs.com/wp-json
+  tags:
+  - Discovery
+  - Metadata
+  properties:
+  - type: OpenAPI
+    url: openapi/juvenescence-discovery-api-openapi.yml
+  - type: Authentication
+    url: authentication/juvenescence-authentication.yml
+  - type: ErrorCatalog
+    url: errors/juvenescence-problem-types.yml
+  - type: Conventions
+    url: conventions/juvenescence-conventions.yml
+  - type: DataModel
+    url: data-model/juvenescence-data-model.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -20,4 +242,77 @@ maintainers:
   email: info@apis.io
 common:
 - type: Website
+  url: https://juvlabs.com/
+- type: Documentation
+  url: https://developer.wordpress.org/rest-api/
+- type: APIReference
+  url: https://juvlabs.com/wp-json/wp/v2
+- type: Blog
+  url: https://juvlabs.com/news/
+- type: BlogRSS
+  url: https://juvlabs.com/sitemap.rss
+- type: PressReleases
+  url: https://juvlabs.com/news/category/press-releases/
+- type: Publications
+  url: https://juvlabs.com/news/category/publications/
+- type: Science
+  url: https://juvlabs.com/science/
+- type: Pipeline
+  url: https://juvlabs.com/our-pipeline/
+- type: Management
+  url: https://juvlabs.com/our-team/
+- type: About
+  url: https://juvlabs.com/our-approach/
+- type: Contact
+  url: https://juvlabs.com/contact-us/
+- type: Support
+  url: https://juvlabs.com/contact-us/
+- type: TermsOfService
+  url: https://juvlabs.com/terms-of-service/
+- type: PrivacyPolicy
+  url: https://juvlabs.com/privacy-notice/
+- type: CookiePolicy
+  url: https://juvlabs.com/cookie-notice/
+- type: RefundPolicy
+  url: https://juvlabs.com/refund-policy/
+- type: LinkedIn
+  url: https://www.linkedin.com/company/juvenescence1
+- type: GitHubOrganization
+  url: https://github.com/Ro5-ai
+- type: SecondaryMarket
   url: https://forgeglobal.com/juvenescence_stock/
+- type: OpenAPI
+  url: openapi/_original/juvenescence-content-openapi.yml
+- type: Overlay
+  url: overlays/juvenescence-content-overlay.yaml
+- type: Authentication
+  url: authentication/juvenescence-authentication.yml
+- type: Conventions
+  url: conventions/juvenescence-conventions.yml
+- type: Conformance
+  url: conformance/juvenescence-conformance.yml
+- type: ErrorCatalog
+  url: errors/juvenescence-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/juvenescence-lifecycle.yml
+- type: DataModel
+  url: data-model/juvenescence-data-model.yml
+- type: DomainSecurity
+  url: security/juvenescence-domain-security.yml
+- type: Packages
+  url: packages/juvenescence-packages.yml
+- type: SDKs
+  url: packages/juvenescence-packages.yml
+- type: Plans
+  url: plans/juvenescence-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/juvenescence-rate-limits.yml
+- type: LLMsTxt
+  url: llms/juvenescence-llms.txt
+- type: AgentSkill
+  url: skills/_index.yml
+x-enrichment:
+  date: '2026-08-23'
+  status: enriched
+  artifacts_added: 28
+  pass: local-v1

@@ -1,0 +1,38 @@
+generated: '2026-08-23'
+method: probed
+source: >-
+  Response headers observed on live anonymous calls to https://juvlabs.com/wp-json on 2026-08-23, plus
+  a search of juvlabs.com for any published limit
+limit_count: 0
+limits: []
+response_headers:
+  rate_limit_headers_returned: false
+  observed: []
+  note: >-
+    No X-RateLimit-*, RateLimit-* or Retry-After header was returned on any observed response. The
+    only throughput-adjacent headers present are edge caching markers — `cache-control:
+    max-age=600, must-revalidate`, `x-cacheable: SHORT`, `x-cache`, `x-cache-group` and Cloudflare's
+    `cf-cache-status` — which shape load but are not a rate-limit signal an agent can read.
+exhaustion:
+  status_code: null
+  observed: false
+  note: No 429 was observed across the derivation run.
+undocumented_enforcement:
+  likely: true
+  detail: >-
+    The site runs on WP Engine behind Cloudflare and registers a
+    /wp-json/wpe/cache-plugin/v1/rate_limit_status route, so platform-level limiting almost certainly
+    exists. It is neither documented nor signalled in response headers, so nothing is recorded as a
+    limit here — an agent has no runtime signal to act on, which is the finding.
+crawl_delay:
+  source: https://juvlabs.com/robots.txt
+  value: 10
+  applies_to: '*'
+  note: >-
+    robots.txt asks all user agents for a 10-second crawl delay. This is a politeness directive for
+    the HTML site rather than an API rate limit, but it is the only throughput number Juvenescence
+    publishes anywhere, and a well-behaved agent should honour it.
+note: >-
+  Juvenescence documents no rate limits. limit_count is an honest zero: the docs were searched, the
+  live responses were read, and there is nothing to record.
+checked: '2026-08-23'

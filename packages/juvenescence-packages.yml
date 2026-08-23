@@ -1,0 +1,85 @@
+generated: '2026-08-23'
+method: searched
+source: >-
+  https://pypi.org/pypi/hydrascreen/json, https://api.github.com/orgs/Ro5-ai/repos, and negative
+  lookups on registry.npmjs.org and pypi.org for juvenescence/juvlabs
+note: >-
+  Juvenescence publishes no client library for its own domain. The one first-party package in this
+  file arrives through the Ro5 Inc. acquisition (announced 5 June 2025 on juvlabs.com); ro5.ai now
+  301s to juvlabs.com, which is the evidence that the Ro5-ai GitHub organisation and its PyPI
+  releases are Juvenescence property. IMPORTANT DECAY SIGNAL: hydrascreen 0.0.8 was last published
+  2023-12-18 and the API host it wraps, hydrascreen-api.ro5.ai, no longer resolves in DNS as of
+  2026-08-23 — the SDK is installable but its backing service is gone. See
+  lifecycle/juvenescence-lifecycle.yml.
+official_count: 1
+packages:
+- language: python
+  registry: pypi
+  name: hydrascreen
+  url: https://pypi.org/project/hydrascreen/
+  install: pip install hydrascreen
+  official: true
+  version: 0.0.8
+  published: '2023-12-18'
+  repository: https://github.com/Ro5-ai/hydrascreen
+  license: Non-commercial
+  publisher: Ro5 Inc. (acquired by Juvenescence Limited, June 2025)
+  wraps: https://hydrascreen-api.ro5.ai/v2
+  status: backing-service-unreachable
+  note: >-
+    Python client for the HydraScreen structure-based drug-discovery API — email/organisation login
+    that mails back a JWT, PDB protein upload, SDF ligand upload, and a protein-ligand affinity and
+    pose-confidence inference call. Six releases (0.0.3 through 0.0.8); the latest is 0.0.8, published
+    2023-12-18, more than two and a half years before this probe. The base URL compiled into the
+    package, https://hydrascreen-api.ro5.ai/v2, returned NXDOMAIN on 2026-08-23, as did the companion
+    GUI host hydrascreen.ro5.ai, so the package can be installed but cannot reach a service.
+repositories:
+- name: Ro5-ai/hydrascreen
+  url: https://github.com/Ro5-ai/hydrascreen
+  language: Python
+  official: true
+  distributed_as: pypi:hydrascreen
+  last_push: '2024-06-25'
+  note: Source of the hydrascreen PyPI package, plus the paper code release for the HydraScreen model.
+- name: Ro5-ai/bio2d_public
+  url: https://github.com/Ro5-ai/bio2d_public
+  language: Python
+  official: true
+  distributed_as: null
+  registry: null
+  version: null
+  published: null
+  last_push: '2025-06-10'
+  note: >-
+    Research code accompanying "Benchmarking ML in ADMET Predictions". Checked, nothing to record for
+    version/published — this repository is not published to PyPI or any other registry and has no
+    tagged release, so there is no registry metadata endpoint to read. It is a reproducibility
+    artifact, not a client library, and is not counted in official_count.
+registries_checked:
+- registry: npm
+  queries:
+  - name: juvenescence
+    status: 404
+  - name: juvlabs
+    status: 404
+  - name: ro5
+    status: 404
+- registry: pypi
+  queries:
+  - name: hydrascreen
+    status: 200
+  - name: juvenescence
+    status: 404
+  - name: juvlabs
+    status: 404
+- registry: github-org
+  queries:
+  - name: juvlabs
+    status: 200
+    public_repos: 0
+    note: Organisation exists (created 2021-10-20) but publishes zero public repositories.
+  - name: Ro5-ai
+    status: 200
+    public_repos: 2
+  - name: juvenescence
+    status: 404

@@ -1,0 +1,109 @@
+generated: '2026-08-23'
+method: probed
+source: >-
+  openapi/_original/juvenescence-content-openapi.yml, https://juvlabs.com/wp-json/ (site index), and
+  live anonymous GETs against every wp/v2 route on 2026-08-23
+docs: https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/
+summary: >-
+  The Juvenescence content API requires NO credentials for everything this profile models. The site
+  index at https://juvlabs.com/wp-json/ returns "authentication": [] — the install advertises no
+  discoverable authentication scheme at all, no application-password endpoint discovery, no OAuth and
+  no OIDC. Anonymous callers get published posts, pages, media, taxonomy terms, search, the registered
+  content-type metadata and oEmbed. Administrative routes are registered on the same namespace but
+  reject anonymous callers with HTTP 401/403, and are not modelled as a public API surface. Because
+  there is no scope surface of any kind, no scopes/ artifact is emitted for this provider.
+security_schemes: []
+public_access:
+  anonymous_read: true
+  api_key_required: false
+  registration_required: false
+  cors:
+    access_control_allow_headers: Authorization, X-WP-Nonce, Content-Disposition, Content-MD5, Content-Type
+    access_control_expose_headers: X-WP-Total, X-WP-TotalPages, Link
+    note: >-
+      The install advertises Authorization and X-WP-Nonce as acceptable request headers — the standard
+      WordPress cookie+nonce and application-password paths — but neither is obtainable by a third
+      party, since juvlabs.com publishes no signup, no developer portal and no credential issuance.
+verified_anonymous:
+- route: /wp/v2/posts
+  status: 200
+- route: /wp/v2/pages
+  status: 200
+- route: /wp/v2/media
+  status: 200
+- route: /wp/v2/categories
+  status: 200
+- route: /wp/v2/tags
+  status: 200
+- route: /wp/v2/comments
+  status: 200
+- route: /wp/v2/search
+  status: 200
+- route: /wp/v2/types
+  status: 200
+- route: /wp/v2/taxonomies
+  status: 200
+- route: /wp/v2/statuses
+  status: 200
+- route: /wp/v2/portfolio
+  status: 200
+- route: /wp/v2/portfolio_category
+  status: 200
+- route: /oembed/1.0/embed
+  status: 200
+- route: /wp/v2 (namespace index)
+  status: 200
+- route: / (site index)
+  status: 200
+credentialed_only:
+- route: /wp/v2/users
+  status: 403
+  code: aios_user_lists_forbidden
+  note: >-
+    User enumeration is explicitly blocked by the All In One Security plugin rather than merely
+    unauthorised — a deliberate hardening choice worth crediting.
+- route: /wp/v2/settings
+  status: 401
+  code: rest_forbidden
+- route: /wp/v2/plugins
+  status: 401
+  code: rest_cannot_view_plugins
+- route: /wp/v2/themes
+  status: 401
+  code: rest_cannot_view_themes
+- route: /wp/v2/block-types
+  status: 401
+  code: rest_block_type_cannot_view
+- route: /wp/v2/menu-locations
+  status: 401
+  code: rest_cannot_view
+- route: /wp-abilities/v1/abilities
+  status: 401
+  code: rest_forbidden
+  note: >-
+    The WordPress Abilities API namespace IS registered on this install — the agent-facing capability
+    registry that the WordPress MCP adapter exposes as tools — but an anonymous GET is refused, so the
+    published ability set could not be enumerated. Recorded, not guessed. See mcp/juvenescence-mcp.yml.
+- route: /wp-abilities/v1/categories
+  status: 401
+  code: rest_forbidden
+write_operations:
+  modelled: false
+  note: >-
+    POST/PUT/PATCH/DELETE are registered on the content routes but are authenticated administrative
+    endpoints for site editors, not a public API offering. They are deliberately excluded from the
+    OpenAPI in this repository.
+retired_credentialed_api:
+  name: HydraScreen API
+  scheme: http-bearer
+  bearer_format: JWT
+  flow: >-
+    POST /v2/email/verify with an email and organisation; the service mails back a base64-encoded JWT
+    which the client decodes and sends as `Authorization: Bearer <token>`.
+  base_url: https://hydrascreen-api.ro5.ai/v2
+  source: https://github.com/Ro5-ai/hydrascreen/blob/HEAD/hydrascreen/api.py
+  status: host-does-not-resolve
+  note: >-
+    Documented from the first-party open-source client only, and recorded here for completeness. The
+    host returned NXDOMAIN on 2026-08-23, so this is a historical auth model, not a callable one. No
+    OpenAPI is emitted for it — see lifecycle/juvenescence-lifecycle.yml.

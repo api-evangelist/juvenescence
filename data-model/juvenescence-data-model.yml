@@ -1,0 +1,183 @@
+generated: '2026-08-23'
+method: derived
+source: >-
+  openapi/_original/juvenescence-content-openapi.yml, plus the live /wp/v2/types and /wp/v2/taxonomies
+  responses from https://juvlabs.com/wp-json on 2026-08-23
+summary: >-
+  The entity graph behind juvlabs.com. Eight content entities, three taxonomies and a discovery layer,
+  joined by integer foreign keys and mirrored in a HAL-style `_links` block on every resource.
+id_scheme:
+  style: integer
+  scope: per-site, shared sequence across all post types
+  note: >-
+    Posts, pages, media items and portfolio items all draw IDs from one WordPress `posts` sequence, so
+    an ID is unique across those four types but tells you nothing about which type it is. Terms
+    (categories, tags, portfolio categories) draw from a separate `terms` sequence, so a category and
+    a post can share the same numeric ID. Always carry the type alongside the ID.
+entities:
+- name: Post
+  collection: /wp/v2/posts
+  count_observed: 57
+  key: id
+  description: A Juvenescence news item — press release, in-the-news pickup, conference report, publication or video.
+  relationships:
+  - kind: belongs_to
+    target: Category
+    via: categories[]
+    cardinality: many
+  - kind: belongs_to
+    target: Tag
+    via: tags[]
+    cardinality: many
+  - kind: has_one
+    target: MediaItem
+    via: featured_media
+  - kind: has_one
+    target: User
+    via: author
+    note: User is not readable — /wp/v2/users returns 403 on this install.
+  - kind: has_many
+    target: Comment
+    via: _links.replies
+    note: Always empty on this site.
+- name: Page
+  collection: /wp/v2/pages
+  count_observed: 35
+  key: id
+  description: >-
+    A corporate, science, pipeline, leadership-biography or policy page. The leadership biographies are
+    modelled as pages rather than as a people type, so there is no structured person entity.
+  relationships:
+  - kind: belongs_to
+    target: Page
+    via: parent
+    note: Self-referential hierarchy; ordering carried in menu_order.
+  - kind: has_one
+    target: MediaItem
+    via: featured_media
+  - kind: has_one
+    target: User
+    via: author
+- name: MediaItem
+  collection: /wp/v2/media
+  count_observed: 466
+  key: id
+  description: A media library attachment with MIME type, source URL and generated size variants.
+  relationships:
+  - kind: belongs_to
+    target: Post
+    via: post
+    note: Nullable — the attachment's parent post, when it was uploaded against one.
+  - kind: has_one
+    target: User
+    via: author
+- name: PortfolioItem
+  collection: /wp/v2/portfolio
+  count_observed: 0
+  key: id
+  description: >-
+    An item of the registered `portfolio` custom post type. The type is registered, public,
+    archive-enabled and REST-exposed, but carried zero items at derivation.
+  relationships:
+  - kind: belongs_to
+    target: PortfolioCategory
+    via: portfolio_category[]
+    cardinality: many
+  - kind: has_one
+    target: MediaItem
+    via: featured_media
+- name: Category
+  collection: /wp/v2/categories
+  count_observed: 7
+  key: id
+  taxonomy: category
+  description: >-
+    The news taxonomy. Five terms carry posts: Press Releases (5), In the News (6), Juv on the Road
+    (50), Publications (52), Videos (53). Healthy Aging & Lifestyle (10) and Uncategorized (1) are empty.
+  relationships:
+  - kind: has_many
+    target: Post
+    via: post filter (categories=<id>)
+  - kind: belongs_to
+    target: Category
+    via: parent
+    note: Hierarchical taxonomy; flat in practice on this site.
+- name: Tag
+  collection: /wp/v2/tags
+  count_observed: 25
+  key: id
+  taxonomy: post_tag
+  description: >-
+    A flat taxonomy whose live vocabulary is the Juvenescence portfolio graph — AgeX, Chrysea Labs,
+    Evgen Pharma, LyGenesis, MDI Therapeutics, Morphoceuticals, Napa Therapeutics, NetraMark Corp.,
+    Relation Therapeutics, Selah Therapeutics, Souvien Therapeutics, The Buck Institute — plus a
+    dormant consumer-nutrition set from the company's earlier supplements business. Only 5 of the 25
+    carry posts.
+  relationships:
+  - kind: has_many
+    target: Post
+    via: post filter (tags=<id>)
+- name: PortfolioCategory
+  collection: /wp/v2/portfolio_category
+  count_observed: 0
+  key: id
+  taxonomy: portfolio_category
+  description: Hierarchical taxonomy attached to the portfolio type. Empty at derivation.
+  relationships:
+  - kind: has_many
+    target: PortfolioItem
+    via: post filter (portfolio_category=<id>)
+  - kind: belongs_to
+    target: PortfolioCategory
+    via: parent
+- name: Comment
+  collection: /wp/v2/comments
+  count_observed: 0
+  key: id
+  description: A comment on a post. Registered and anonymously readable, but the collection is empty.
+  relationships:
+  - kind: belongs_to
+    target: Post
+    via: post
+  - kind: belongs_to
+    target: Comment
+    via: parent
+- name: SearchResult
+  collection: /wp/v2/search
+  key: id
+  description: >-
+    A projection, not a stored entity — a lightweight { id, title, url, type, subtype } view over
+    posts, pages, portfolio items and taxonomy terms.
+  relationships:
+  - kind: belongs_to
+    target: Post|Page|PortfolioItem|Category|Tag
+    via: type + subtype
+    note: Resolve id against the collection named by subtype.
+discovery_entities:
+- name: PostType
+  collection: /wp/v2/types
+  description: >-
+    Registered post types — post, page, attachment and the custom portfolio type — each naming its
+    taxonomies, rest_base and rest_namespace. This is the machine-readable index of the entity list above.
+- name: Taxonomy
+  collection: /wp/v2/taxonomies
+  description: Registered taxonomies — category, post_tag, portfolio_category — and the types each attaches to.
+- name: Status
+  collection: /wp/v2/statuses
+  description: Registered post statuses. Only `publish` is exposed anonymously.
+unreadable_entities:
+- name: User
+  collection: /wp/v2/users
+  status: 403
+  code: aios_user_lists_forbidden
+  note: >-
+    Every Post, Page and MediaItem carries an `author` integer that cannot be dereferenced — user
+    enumeration is blocked outright on this install. This is a deliberate dangling foreign key, and an
+    agent should resolve author display names from the resource's `_links.author` embed instead.
+hypermedia:
+  field: _links
+  style: HAL-like with curies
+  relations: [self, collection, about, author, replies, version-history, wp:featuredmedia, wp:attachment, wp:term, curies]
+  note: >-
+    Adding _embed=true to any request inlines the author, featured media and term resources, collapsing
+    the joins above into one round trip.

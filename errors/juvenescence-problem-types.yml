@@ -1,0 +1,122 @@
+generated: '2026-08-23'
+method: probed
+source: >-
+  Derived from the 4xx responses in openapi/_original/juvenescence-content-openapi.yml and confirmed
+  against live error bodies returned by https://juvlabs.com/wp-json on 2026-08-23
+format: wordpress-rest
+rfc9457: false
+media_type: application/json
+envelope:
+  code: Stable machine-readable error identifier. This is the field to branch on.
+  message: Human-readable message. Localised to the site locale (en-GB here); do not match on it.
+  data.status: The HTTP status code, repeated in the body.
+  data.params: Present on validation failures — a map of parameter name to a plain-language message.
+  data.details: Present on validation failures — a map of parameter name to a structured sub-error.
+note: >-
+  This API does not emit application/problem+json and has no problem-type URI registry, so there is
+  no `type` field to dereference. The `code` values below were either observed live or are the
+  documented WordPress REST codes for the routes modelled in this repository.
+problems:
+- status: 400
+  code: rest_invalid_param
+  title: Invalid parameter
+  detail: >-
+    One or more query parameters failed validation. data.params names each offending parameter with a
+    plain-language reason; data.details carries a nested code such as rest_out_of_bounds.
+  remediation: >-
+    Read data.params, correct the named parameter and retry. This is deterministic — retrying the
+    identical request will fail identically.
+  observed: true
+  example_request: GET /wp/v2/posts?per_page=999
+  example_body: >-
+    {"code":"rest_invalid_param","message":"Invalid parameter(s): per_page","data":{"status":400,
+    "params":{"per_page":"per_page must be between 1 (inclusive) and 100 (inclusive)"}}}
+  source_operations:
+  - listPosts
+  - listPages
+  - listMedia
+  - listCategories
+  - listTags
+  - listComments
+  - searchContent
+  - listPortfolio
+  - listPortfolioCategories
+- status: 401
+  code: rest_forbidden
+  title: Not allowed
+  detail: >-
+    The route or the requested context needs credentials. Returned when context=edit is requested
+    anonymously, and by every administrative route on this install.
+  remediation: >-
+    Drop back to context=view or context=embed. Credentials are not obtainable by a third party —
+    Juvenescence publishes no signup or key issuance.
+  observed: true
+  example_request: GET /wp/v2/settings
+  example_body: '{"code":"rest_forbidden","message":"Sorry, you are not allowed to do that.","data":{"status":401}}'
+- status: 403
+  code: aios_user_lists_forbidden
+  title: Listing users is forbidden
+  detail: >-
+    User enumeration is blocked outright by the All In One Security plugin on this install, rather
+    than merely requiring credentials.
+  remediation: Do not attempt author enumeration; resolve author names from the post `_links` instead.
+  observed: true
+  example_request: GET /wp/v2/users
+  example_body: '{"code":"aios_user_lists_forbidden","message":"Listing users is forbidden.","data":{"status":403}}'
+- status: 404
+  code: rest_post_invalid_id
+  title: Invalid post ID
+  detail: No post, page, media item or portfolio item exists with the requested ID, or it is not published.
+  remediation: Re-resolve the ID from the collection or from searchContent before retrying.
+  observed: true
+  example_request: GET /wp/v2/posts/999999
+  example_body: '{"code":"rest_post_invalid_id","message":"Invalid post ID.","data":{"status":404}}'
+  source_operations:
+  - getPost
+  - getPage
+  - getMediaItem
+  - getPortfolioItem
+- status: 404
+  code: rest_no_route
+  title: No route found
+  detail: No route matches the requested URL and HTTP method.
+  remediation: >-
+    Re-read the route table from getSiteIndex or getNamespaceIndex; this install registers 512 routes
+    across 25 namespaces and only the wp/v2 and oembed/1.0 content routes are anonymously readable.
+  observed: true
+  example_request: GET /wp/v2/nope
+  example_body: >-
+    {"code":"rest_no_route","message":"No route was found matching the URL and request method.",
+    "data":{"status":404}}
+- status: 404
+  code: rest_term_invalid
+  title: Invalid term ID
+  detail: No taxonomy term exists with the requested ID in this taxonomy.
+  remediation: Re-resolve the term from listCategories, listTags or listPortfolioCategories.
+  observed: false
+  source_operations:
+  - getCategory
+  - getTag
+  - getPortfolioCategory
+- status: 404
+  code: rest_comment_invalid_id
+  title: Invalid comment ID
+  detail: >-
+    No comment exists with the requested ID. On juvlabs.com the comments collection is empty, so this
+    is the response for every ID.
+  remediation: Do not expect comment content from this site.
+  observed: false
+  source_operations:
+  - getComment
+retry_guidance:
+  retryable: []
+  non_retryable:
+  - rest_invalid_param
+  - rest_forbidden
+  - aios_user_lists_forbidden
+  - rest_post_invalid_id
+  - rest_no_route
+  note: >-
+    No 429 and no 5xx were observed across the derivation run, and the API returns no Retry-After
+    header. Every 4xx above is deterministic: an identical retry produces an identical failure, so an
+    agent should correct the request rather than back off.
