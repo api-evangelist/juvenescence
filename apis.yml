@@ -17,6 +17,18 @@ description: >-
   does expose are the anonymously readable WordPress REST content API behind juvlabs.com, a
   provider-published llms.txt, and the open-source HydraScreen and bio2d research code released under
   the Ro5-ai GitHub organisation.
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: high
+  source:
+  - openapi
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 image: https://juvlabs.com/wp-content/uploads/2024/07/juvenescence-logo-green.png
 url: https://raw.githubusercontent.com/api-evangelist/juvenescence/refs/heads/main/apis.yml
 x-type: company
