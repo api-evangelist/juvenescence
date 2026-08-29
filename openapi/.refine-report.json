@@ -1,0 +1,32 @@
+{
+  "provider": "juvenescence",
+  "sources": [
+    "juvenescence-categories-api-openapi.yml",
+    "juvenescence-comments-api-openapi.yml",
+    "juvenescence-discovery-api-openapi.yml",
+    "juvenescence-media-api-openapi.yml",
+    "juvenescence-pages-api-openapi.yml",
+    "juvenescence-portfolio-api-openapi.yml",
+    "juvenescence-posts-api-openapi.yml",
+    "juvenescence-search-api-openapi.yml",
+    "juvenescence-tags-api-openapi.yml"
+  ],
+  "outputs": [
+    "juvenescence-categories-api-openapi.yml",
+    "juvenescence-comments-api-openapi.yml",
+    "juvenescence-discovery-api-openapi.yml",
+    "juvenescence-media-api-openapi.yml",
+    "juvenescence-pages-api-openapi.yml",
+    "juvenescence-portfolio-api-openapi.yml",
+    "juvenescence-posts-api-openapi.yml",
+    "juvenescence-search-api-openapi.yml",
+    "juvenescence-tags-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "apis.yml register: already-registered"
+  ],
+  "skipped": []
+}

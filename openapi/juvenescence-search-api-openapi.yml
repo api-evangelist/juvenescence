@@ -2,28 +2,14 @@ openapi: 3.2.0
 info:
   title: Juvenescence Content API (WordPress REST API) Search API
   version: wp/v2
-  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived
-    from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's
-    news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35
-    corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag
-    taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly
-    queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored
-    specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site
-    itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23.
-    Write operations are registered on the same routes but are authenticated administrative endpoints, not a public
-    API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`,
-    `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the
-    whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication
-    and conformance artifacts instead.
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35 corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23. Write operations are registered on the same routes but are authenticated administrative endpoints, not a public API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`, `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication and conformance artifacts instead.
   contact:
     name: Juvenescence Limited
     url: https://juvlabs.com/contact-us/
   termsOfService: https://juvlabs.com/terms-of-service/
   x-derived-from: https://juvlabs.com/wp-json/
   x-derived-on: '2026-08-23'
-  x-api-evangelist-note: Derived by the API Evangelist enrichment pipeline from the provider-published WordPress
-    REST route index at https://juvlabs.com/wp-json/ and https://juvlabs.com/wp-json/wp/v2; not authored or endorsed
-    by Juvenescence Limited. Every operation was verified to return HTTP 200 without credentials on 2026-08-23.
+  x-api-evangelist-note: Derived by the API Evangelist enrichment pipeline from the provider-published WordPress REST route index at https://juvlabs.com/wp-json/ and https://juvlabs.com/wp-json/wp/v2; not authored or endorsed by Juvenescence Limited. Every operation was verified to return HTTP 200 without credentials on 2026-08-23.
 servers:
 - url: https://juvlabs.com/wp-json
   description: Production
@@ -39,10 +25,7 @@ paths:
       tags:
       - Search
       summary: Search across content
-      description: Cross-content search over posts, pages, the portfolio type and taxonomy terms. A search for `aging`
-        returned 46 hits at derivation. Set `type=term` to search taxonomy terms instead of posts, and `subtype`
-        to narrow to one post type or taxonomy. This is the single best entry point for an agent that needs to find
-        Juvenescence material without walking every collection.
+      description: Cross-content search over posts, pages, the portfolio type and taxonomy terms. A search for `aging` returned 46 hits at derivation. Set `type=term` to search taxonomy terms instead of posts, and `subtype` to narrow to one post type or taxonomy. This is the single best entry point for an agent that needs to find Juvenescence material without walking every collection.
       security:
       - {}
       responses:
@@ -92,8 +75,7 @@ paths:
           - post-format
       - name: subtype
         in: query
-        description: Limit results to items of one or more object subtypes, e.g. `post`, `page`, `portfolio`, `category`,
-          `post_tag`.
+        description: Limit results to items of one or more object subtypes, e.g. `post`, `page`, `portfolio`, `category`, `post_tag`.
         schema:
           type: array
           items:
@@ -101,61 +83,14 @@ paths:
           default:
           - any
 components:
-  parameters:
-    contextEmbed:
-      name: contextEmbed
-      in: query
-      description: Scope under which the request is made; determines fields present in response.
-      schema:
-        type: string
-        default: view
-        enum:
-        - view
-        - embed
-    exclude:
-      name: exclude
-      in: query
-      description: Ensure result set excludes specific IDs.
-      schema:
-        type: array
-        items:
-          type: integer
-    include:
-      name: include
-      in: query
-      description: Limit result set to specific IDs.
-      schema:
-        type: array
-        items:
-          type: integer
-    page:
-      name: page
-      in: query
-      description: Current page of the collection.
-      schema:
-        type: integer
-        default: 1
-        minimum: 1
-    per_page:
-      name: per_page
-      in: query
-      description: Maximum number of items to be returned in result set.
-      schema:
-        type: integer
-        default: 10
-        minimum: 1
-        maximum: 100
-    search:
-      name: search
-      in: query
-      description: Limit results to those matching a string.
-      schema:
-        type: string
   schemas:
+    Links:
+      type: object
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
     Error:
       type: object
-      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors
-        are returned as application/json with this shape.
+      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
       required:
       - code
       - message
@@ -174,8 +109,7 @@ components:
           description: A human-readable error message.
         data:
           type: object
-          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details`
-            keyed by the offending parameter.
+          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details` keyed by the offending parameter.
           properties:
             status:
               type: integer
@@ -190,11 +124,6 @@ components:
               additionalProperties: true
               description: Per-parameter structured validation detail.
           additionalProperties: true
-    Links:
-      type: object
-      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`,
-        `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
-      additionalProperties: true
     SearchResult:
       type: object
       description: A cross-content search hit.
@@ -226,23 +155,70 @@ components:
           - post_tag
         _links:
           $ref: '#/components/schemas/Links'
+  parameters:
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    per_page:
+      name: per_page
+      in: query
+      description: Maximum number of items to be returned in result set.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+    include:
+      name: include
+      in: query
+      description: Limit result set to specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    page:
+      name: page
+      in: query
+      description: Current page of the collection.
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    exclude:
+      name: exclude
+      in: query
+      description: Ensure result set excludes specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    contextEmbed:
+      name: contextEmbed
+      in: query
+      description: Scope under which the request is made; determines fields present in response.
+      schema:
+        type: string
+        default: view
+        enum:
+        - view
+        - embed
   responses:
-    BadRequest:
-      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params`
-        map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
           examples:
-            invalidParam:
+            forbidden:
               value:
-                code: rest_invalid_param
-                message: 'Invalid parameter(s): per_page'
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
                 data:
-                  status: 400
-                  params:
-                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
+                  status: 401
     NotFound:
       description: No such resource, or no route matching the URL and method.
       content:
@@ -262,17 +238,18 @@ components:
                 message: No route was found matching the URL and request method.
                 data:
                   status: 404
-    Unauthorized:
-      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when
-        `context=edit` is requested anonymously.
+    BadRequest:
+      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params` map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
           examples:
-            forbidden:
+            invalidParam:
               value:
-                code: rest_forbidden
-                message: Sorry, you are not allowed to do that.
+                code: rest_invalid_param
+                message: 'Invalid parameter(s): per_page'
                 data:
-                  status: 401
+                  status: 400
+                  params:
+                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
