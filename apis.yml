@@ -40,14 +40,14 @@ created: '2026-08-23'
 modified: '2026-08-23'
 tags:
 - Company
-- Biotechnology
-- Pharmaceuticals
-- Longevity
-- Drug Discovery
-- Life Sciences
-- Clinical Trials
-- Artificial Intelligence
-- Aging
+- biotechnology
+- pharmaceuticals
+- longevity
+- drug-discovery
+- life-sciences
+- clinical-trials
+- artificial-intelligence
+- aging
 - content-api
 tags_raw:
 - Company
