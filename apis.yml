@@ -307,8 +307,6 @@ common:
   url: https://github.com/Ro5-ai
 - type: SecondaryMarket
   url: https://forgeglobal.com/juvenescence_stock/
-- type: OpenAPI
-  url: openapi/_original/juvenescence-content-openapi.yml
 - type: Overlay
   url: overlays/juvenescence-content-overlay.yaml
 - type: Authentication
