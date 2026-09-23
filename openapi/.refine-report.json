@@ -1,15 +1,7 @@
 {
   "provider": "juvenescence",
   "sources": [
-    "juvenescence-categories-api-openapi.yml",
-    "juvenescence-comments-api-openapi.yml",
-    "juvenescence-discovery-api-openapi.yml",
-    "juvenescence-media-api-openapi.yml",
-    "juvenescence-pages-api-openapi.yml",
-    "juvenescence-portfolio-api-openapi.yml",
-    "juvenescence-posts-api-openapi.yml",
-    "juvenescence-search-api-openapi.yml",
-    "juvenescence-tags-api-openapi.yml"
+    "_ae-authored/juvenescence-content-openapi.yml"
   ],
   "outputs": [
     "juvenescence-categories-api-openapi.yml",
@@ -26,7 +18,19 @@
   "errors": [],
   "warnings": [],
   "notes": [
+    "sourced from openapi/_original/ (0 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "juvenescence-content-openapi.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
     "apis.yml register: already-registered"
   ],
-  "skipped": []
+  "skipped": [
+    "juvenescence-categories-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-comments-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-discovery-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-media-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-pages-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-portfolio-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-posts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-search-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "juvenescence-tags-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
 }

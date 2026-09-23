@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: Juvenescence Content API (WordPress REST API) Tags API
   version: wp/v2
-  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35 corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23. Write operations are registered on the same routes but are authenticated administrative endpoints, not a public API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`, `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication and conformance artifacts instead.
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/.
   contact:
     name: Juvenescence Limited
     url: https://juvlabs.com/contact-us/
@@ -94,14 +94,12 @@ paths:
       - $ref: '#/components/parameters/context'
 components:
   parameters:
-    include:
-      name: include
+    offset:
+      name: offset
       in: query
-      description: Limit result set to specific IDs.
+      description: Offset the result set by a specific number of items.
       schema:
-        type: array
-        items:
-          type: integer
+        type: integer
     hide_empty:
       name: hide_empty
       in: query
@@ -109,57 +107,6 @@ components:
       schema:
         type: boolean
         default: false
-    id:
-      name: id
-      in: path
-      description: Unique identifier for the resource.
-      schema:
-        type: integer
-      required: true
-    exclude:
-      name: exclude
-      in: query
-      description: Ensure result set excludes specific IDs.
-      schema:
-        type: array
-        items:
-          type: integer
-    offset:
-      name: offset
-      in: query
-      description: Offset the result set by a specific number of items.
-      schema:
-        type: integer
-    orderAsc:
-      name: orderAsc
-      in: query
-      description: Order sort attribute ascending or descending.
-      schema:
-        type: string
-        default: asc
-        enum:
-        - asc
-        - desc
-    slugFilter:
-      name: slugFilter
-      in: query
-      description: Limit result set to items with one or more specific slugs.
-      schema:
-        type: array
-        items:
-          type: string
-    termPost:
-      name: termPost
-      in: query
-      description: Limit result set to terms assigned to a specific post.
-      schema:
-        type: integer
-    search:
-      name: search
-      in: query
-      description: Limit results to those matching a string.
-      schema:
-        type: string
     termOrderby:
       name: termOrderby
       in: query
@@ -184,6 +131,22 @@ components:
         type: integer
         default: 1
         minimum: 1
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    orderAsc:
+      name: orderAsc
+      in: query
+      description: Order sort attribute ascending or descending.
+      schema:
+        type: string
+        default: asc
+        enum:
+        - asc
+        - desc
     per_page:
       name: per_page
       in: query
@@ -193,6 +156,14 @@ components:
         default: 10
         minimum: 1
         maximum: 100
+    include:
+      name: include
+      in: query
+      description: Limit result set to specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
     context:
       name: context
       in: query
@@ -204,55 +175,76 @@ components:
         - view
         - embed
         - edit
-  responses:
-    NotFound:
-      description: No such resource, or no route matching the URL and method.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            invalidId:
-              value:
-                code: rest_post_invalid_id
-                message: Invalid post ID.
-                data:
-                  status: 404
-            noRoute:
-              value:
-                code: rest_no_route
-                message: No route was found matching the URL and request method.
-                data:
-                  status: 404
-    BadRequest:
-      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params` map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            invalidParam:
-              value:
-                code: rest_invalid_param
-                message: 'Invalid parameter(s): per_page'
-                data:
-                  status: 400
-                  params:
-                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
-    Unauthorized:
-      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            forbidden:
-              value:
-                code: rest_forbidden
-                message: Sorry, you are not allowed to do that.
-                data:
-                  status: 401
+    termPost:
+      name: termPost
+      in: query
+      description: Limit result set to terms assigned to a specific post.
+      schema:
+        type: integer
+    exclude:
+      name: exclude
+      in: query
+      description: Ensure result set excludes specific IDs.
+      schema:
+        type: array
+        items:
+          type: integer
+    id:
+      name: id
+      in: path
+      description: Unique identifier for the resource.
+      schema:
+        type: integer
+      required: true
+    slugFilter:
+      name: slugFilter
+      in: query
+      description: Limit result set to items with one or more specific slugs.
+      schema:
+        type: array
+        items:
+          type: string
   schemas:
+    Links:
+      type: object
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
+    Error:
+      type: object
+      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
+      required:
+      - code
+      - message
+      - data
+      properties:
+        code:
+          type: string
+          description: A machine-readable error code.
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_no_route
+          - rest_forbidden
+        message:
+          type: string
+          description: A human-readable error message.
+        data:
+          type: object
+          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details` keyed by the offending parameter.
+          properties:
+            status:
+              type: integer
+              description: The HTTP status code.
+            params:
+              type: object
+              additionalProperties:
+                type: string
+              description: Per-parameter validation messages.
+            details:
+              type: object
+              additionalProperties: true
+              description: Per-parameter structured validation detail.
+          additionalProperties: true
     Term:
       type: object
       description: A taxonomy term (category, post tag, or portfolio category).
@@ -294,43 +286,51 @@ components:
           description: The parent term ID. Hierarchical taxonomies only.
         _links:
           $ref: '#/components/schemas/Links'
-    Error:
-      type: object
-      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
-      required:
-      - code
-      - message
-      - data
-      properties:
-        code:
-          type: string
-          description: A machine-readable error code.
+  responses:
+    NotFound:
+      description: No such resource, or no route matching the URL and method.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
           examples:
-          - rest_post_invalid_id
-          - rest_invalid_param
-          - rest_no_route
-          - rest_forbidden
-        message:
-          type: string
-          description: A human-readable error message.
-        data:
-          type: object
-          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details` keyed by the offending parameter.
-          properties:
-            status:
-              type: integer
-              description: The HTTP status code.
-            params:
-              type: object
-              additionalProperties:
-                type: string
-              description: Per-parameter validation messages.
-            details:
-              type: object
-              additionalProperties: true
-              description: Per-parameter structured validation detail.
-          additionalProperties: true
-    Links:
-      type: object
-      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
-      additionalProperties: true
+            invalidId:
+              value:
+                code: rest_post_invalid_id
+                message: Invalid post ID.
+                data:
+                  status: 404
+            noRoute:
+              value:
+                code: rest_no_route
+                message: No route was found matching the URL and request method.
+                data:
+                  status: 404
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401
+    BadRequest:
+      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params` map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidParam:
+              value:
+                code: rest_invalid_param
+                message: 'Invalid parameter(s): per_page'
+                data:
+                  status: 400
+                  params:
+                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)

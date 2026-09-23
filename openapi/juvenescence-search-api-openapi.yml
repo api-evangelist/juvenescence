@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: Juvenescence Content API (WordPress REST API) Search API
   version: wp/v2
-  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35 corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23. Write operations are registered on the same routes but are authenticated administrative endpoints, not a public API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`, `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication and conformance artifacts instead.
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/.
   contact:
     name: Juvenescence Limited
     url: https://juvlabs.com/contact-us/
@@ -88,6 +88,37 @@ components:
       type: object
       description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
       additionalProperties: true
+    SearchResult:
+      type: object
+      description: A cross-content search hit.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the object.
+        title:
+          type: string
+          description: The title for the object.
+        url:
+          type: string
+          format: uri
+          description: URL to the object.
+        type:
+          type: string
+          description: Object type.
+          examples:
+          - post
+          - term
+        subtype:
+          type: string
+          description: Object subtype.
+          examples:
+          - post
+          - page
+          - portfolio
+          - category
+          - post_tag
+        _links:
+          $ref: '#/components/schemas/Links'
     Error:
       type: object
       description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
@@ -124,44 +155,63 @@ components:
               additionalProperties: true
               description: Per-parameter structured validation detail.
           additionalProperties: true
-    SearchResult:
-      type: object
-      description: A cross-content search hit.
-      properties:
-        id:
-          type: integer
-          description: Unique identifier for the object.
-        title:
-          type: string
-          description: The title for the object.
-        url:
-          type: string
-          format: uri
-          description: URL to the object.
-        type:
-          type: string
-          description: Object type.
+  responses:
+    BadRequest:
+      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params` map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
           examples:
-          - post
-          - term
-        subtype:
-          type: string
-          description: Object subtype.
+            invalidParam:
+              value:
+                code: rest_invalid_param
+                message: 'Invalid parameter(s): per_page'
+                data:
+                  status: 400
+                  params:
+                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
+    NotFound:
+      description: No such resource, or no route matching the URL and method.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
           examples:
-          - post
-          - page
-          - portfolio
-          - category
-          - post_tag
-        _links:
-          $ref: '#/components/schemas/Links'
+            invalidId:
+              value:
+                code: rest_post_invalid_id
+                message: Invalid post ID.
+                data:
+                  status: 404
+            noRoute:
+              value:
+                code: rest_no_route
+                message: No route was found matching the URL and request method.
+                data:
+                  status: 404
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401
   parameters:
-    search:
-      name: search
+    exclude:
+      name: exclude
       in: query
-      description: Limit results to those matching a string.
+      description: Ensure result set excludes specific IDs.
       schema:
-        type: string
+        type: array
+        items:
+          type: integer
     per_page:
       name: per_page
       in: query
@@ -187,14 +237,6 @@ components:
         type: integer
         default: 1
         minimum: 1
-    exclude:
-      name: exclude
-      in: query
-      description: Ensure result set excludes specific IDs.
-      schema:
-        type: array
-        items:
-          type: integer
     contextEmbed:
       name: contextEmbed
       in: query
@@ -205,51 +247,9 @@ components:
         enum:
         - view
         - embed
-  responses:
-    Unauthorized:
-      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            forbidden:
-              value:
-                code: rest_forbidden
-                message: Sorry, you are not allowed to do that.
-                data:
-                  status: 401
-    NotFound:
-      description: No such resource, or no route matching the URL and method.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            invalidId:
-              value:
-                code: rest_post_invalid_id
-                message: Invalid post ID.
-                data:
-                  status: 404
-            noRoute:
-              value:
-                code: rest_no_route
-                message: No route was found matching the URL and request method.
-                data:
-                  status: 404
-    BadRequest:
-      description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params` map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            invalidParam:
-              value:
-                code: rest_invalid_param
-                message: 'Invalid parameter(s): per_page'
-                data:
-                  status: 400
-                  params:
-                    per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
+    search:
+      name: search
+      in: query
+      description: Limit results to those matching a string.
+      schema:
+        type: string

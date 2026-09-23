@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: Juvenescence Content API (WordPress REST API) Discovery API
   version: wp/v2
-  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35 corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23. Write operations are registered on the same routes but are authenticated administrative endpoints, not a public API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`, `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication and conformance artifacts instead.
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/.
   contact:
     name: Juvenescence Limited
     url: https://juvlabs.com/contact-us/
@@ -264,10 +264,65 @@ paths:
           default: 600
 components:
   schemas:
-    Links:
+    Status:
       type: object
-      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
-      additionalProperties: true
+      description: A registered post status.
+      properties:
+        name:
+          type: string
+          description: The title for the status.
+        public:
+          type: boolean
+          description: Whether posts with this status should be shown in the front end of the site.
+        queryable:
+          type: boolean
+          description: Whether posts with this status should be publicly-queryable.
+        slug:
+          type: string
+          description: An alphanumeric identifier for the status.
+          examples:
+          - publish
+        date_floating:
+          type: boolean
+          description: Whether the status is excluded from the date query.
+        _links:
+          $ref: '#/components/schemas/Links'
+    Error:
+      type: object
+      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
+      required:
+      - code
+      - message
+      - data
+      properties:
+        code:
+          type: string
+          description: A machine-readable error code.
+          examples:
+          - rest_post_invalid_id
+          - rest_invalid_param
+          - rest_no_route
+          - rest_forbidden
+        message:
+          type: string
+          description: A human-readable error message.
+        data:
+          type: object
+          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details` keyed by the offending parameter.
+          properties:
+            status:
+              type: integer
+              description: The HTTP status code.
+            params:
+              type: object
+              additionalProperties:
+                type: string
+              description: Per-parameter validation messages.
+            details:
+              type: object
+              additionalProperties: true
+              description: Per-parameter structured validation detail.
+          additionalProperties: true
     SiteIndex:
       type: object
       description: The WordPress REST API site index — the discovery document served at /wp-json/.
@@ -314,21 +369,6 @@ components:
           additionalProperties: true
         _links:
           $ref: '#/components/schemas/Links'
-    NamespaceIndex:
-      type: object
-      description: The route index for a single REST namespace.
-      properties:
-        namespace:
-          type: string
-          description: The namespace identifier.
-          examples:
-          - wp/v2
-        routes:
-          type: object
-          description: Routes registered in this namespace, keyed by route pattern, each carrying its methods, endpoints and per-argument schema.
-          additionalProperties: true
-        _links:
-          $ref: '#/components/schemas/Links'
     OEmbed:
       type: object
       description: An oEmbed 1.0 rich response for a juvlabs.com URL.
@@ -365,27 +405,37 @@ components:
         html:
           type: string
           description: The embed HTML.
-    Status:
+    Taxonomy:
       type: object
-      description: A registered post status.
+      description: A registered taxonomy.
       properties:
         name:
           type: string
-          description: The title for the status.
-        public:
-          type: boolean
-          description: Whether posts with this status should be shown in the front end of the site.
-        queryable:
-          type: boolean
-          description: Whether posts with this status should be publicly-queryable.
+          description: The title for the taxonomy.
         slug:
           type: string
-          description: An alphanumeric identifier for the status.
+          description: An alphanumeric identifier for the taxonomy.
           examples:
-          - publish
-        date_floating:
+          - category
+          - post_tag
+          - portfolio_category
+        description:
+          type: string
+          description: A human-readable description of the taxonomy.
+        types:
+          type: array
+          items:
+            type: string
+          description: Types associated with the taxonomy.
+        hierarchical:
           type: boolean
-          description: Whether the status is excluded from the date query.
+          description: Whether or not the taxonomy should have children.
+        rest_base:
+          type: string
+          description: REST base route for the taxonomy.
+        rest_namespace:
+          type: string
+          description: REST route's namespace for the taxonomy.
         _links:
           $ref: '#/components/schemas/Links'
     PostType:
@@ -427,89 +477,38 @@ components:
           description: REST route's namespace for the post type.
         _links:
           $ref: '#/components/schemas/Links'
-    Taxonomy:
+    Links:
       type: object
-      description: A registered taxonomy.
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
+    NamespaceIndex:
+      type: object
+      description: The route index for a single REST namespace.
       properties:
-        name:
+        namespace:
           type: string
-          description: The title for the taxonomy.
-        slug:
-          type: string
-          description: An alphanumeric identifier for the taxonomy.
+          description: The namespace identifier.
           examples:
-          - category
-          - post_tag
-          - portfolio_category
-        description:
-          type: string
-          description: A human-readable description of the taxonomy.
-        types:
-          type: array
-          items:
-            type: string
-          description: Types associated with the taxonomy.
-        hierarchical:
-          type: boolean
-          description: Whether or not the taxonomy should have children.
-        rest_base:
-          type: string
-          description: REST base route for the taxonomy.
-        rest_namespace:
-          type: string
-          description: REST route's namespace for the taxonomy.
+          - wp/v2
+        routes:
+          type: object
+          description: Routes registered in this namespace, keyed by route pattern, each carrying its methods, endpoints and per-argument schema.
+          additionalProperties: true
         _links:
           $ref: '#/components/schemas/Links'
-    Error:
-      type: object
-      description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
-      required:
-      - code
-      - message
-      - data
-      properties:
-        code:
-          type: string
-          description: A machine-readable error code.
-          examples:
-          - rest_post_invalid_id
-          - rest_invalid_param
-          - rest_no_route
-          - rest_forbidden
-        message:
-          type: string
-          description: A human-readable error message.
-        data:
-          type: object
-          description: Error detail. Always carries the HTTP status; validation errors also carry `params` and `details` keyed by the offending parameter.
-          properties:
-            status:
-              type: integer
-              description: The HTTP status code.
-            params:
-              type: object
-              additionalProperties:
-                type: string
-              description: Per-parameter validation messages.
-            details:
-              type: object
-              additionalProperties: true
-              description: Per-parameter structured validation detail.
-          additionalProperties: true
+  parameters:
+    context:
+      name: context
+      in: query
+      description: Scope under which the request is made; determines fields present in response.
+      schema:
+        type: string
+        default: view
+        enum:
+        - view
+        - embed
+        - edit
   responses:
-    Unauthorized:
-      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            forbidden:
-              value:
-                code: rest_forbidden
-                message: Sorry, you are not allowed to do that.
-                data:
-                  status: 401
     NotFound:
       description: No such resource, or no route matching the URL and method.
       content:
@@ -529,15 +528,16 @@ components:
                 message: No route was found matching the URL and request method.
                 data:
                   status: 404
-  parameters:
-    context:
-      name: context
-      in: query
-      description: Scope under which the request is made; determines fields present in response.
-      schema:
-        type: string
-        default: view
-        enum:
-        - view
-        - embed
-        - edit
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401

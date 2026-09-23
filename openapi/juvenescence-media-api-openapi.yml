@@ -2,7 +2,7 @@ openapi: 3.2.0
 info:
   title: Juvenescence Content API (WordPress REST API) Media API
   version: wp/v2
-  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/. It exposes Juvenescence's news stream (57 posts across Press Releases, In the News, Juv on the Road, Publications and Videos), the 35 corporate, science, pipeline and leadership-biography pages, a 466-item media library, the category and tag taxonomies, cross-content search, and the site's registered `portfolio` custom post type (registered and publicly queryable, but empty at the time of derivation). Juvenescence runs no developer program and publishes no hand-authored specification; this document is a faithful derivation of the routes, parameters, defaults and enums the site itself advertises, restricted to the read operations verified to return HTTP 200 without credentials on 2026-08-23. Write operations are registered on the same routes but are authenticated administrative endpoints, not a public API offering, and are deliberately not modelled here. The routes that require credentials on this install (`/wp/v2/users`, `/wp/v2/settings`, `/wp/v2/plugins`, `/wp/v2/themes`, `/wp/v2/block-types`, `/wp/v2/menu-locations` and the whole `wp-abilities/v1` namespace) are likewise excluded, and are recorded in the repository's authentication and conformance artifacts instead.
+  description: Anonymously readable content API for juvlabs.com, the corporate site of Juvenescence Limited, derived from the WordPress REST route index the site publishes at https://juvlabs.com/wp-json/.
   contact:
     name: Juvenescence Limited
     url: https://juvlabs.com/contact-us/
@@ -132,22 +132,12 @@ paths:
       - $ref: '#/components/parameters/context'
 components:
   parameters:
-    include:
-      name: include
+    offset:
+      name: offset
       in: query
-      description: Limit result set to specific IDs.
+      description: Offset the result set by a specific number of items.
       schema:
-        type: array
-        items:
-          type: integer
-    author_exclude:
-      name: author_exclude
-      in: query
-      description: Ensure result set excludes posts assigned to specific authors.
-      schema:
-        type: array
-        items:
-          type: integer
+        type: integer
     author:
       name: author
       in: query
@@ -156,31 +146,78 @@ components:
         type: array
         items:
           type: integer
-    id:
-      name: id
-      in: path
-      description: Unique identifier for the resource.
+    search_columns:
+      name: search_columns
+      in: query
+      description: Array of column names to be searched.
+      schema:
+        type: array
+        items:
+          type: string
+    page:
+      name: page
+      in: query
+      description: Current page of the collection.
       schema:
         type: integer
-      required: true
-    exclude:
-      name: exclude
+        default: 1
+        minimum: 1
+    search:
+      name: search
       in: query
-      description: Ensure result set excludes specific IDs.
+      description: Limit results to those matching a string.
+      schema:
+        type: string
+    modified_before:
+      name: modified_before
+      in: query
+      description: Limit response to posts modified before a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    search_semantics:
+      name: search_semantics
+      in: query
+      description: How to interpret the search input.
+      schema:
+        type: string
+        enum:
+        - exact
+    after:
+      name: after
+      in: query
+      description: Limit response to posts published after a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    per_page:
+      name: per_page
+      in: query
+      description: Maximum number of items to be returned in result set.
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+    include:
+      name: include
+      in: query
+      description: Limit result set to specific IDs.
       schema:
         type: array
         items:
           type: integer
-    order:
-      name: order
+    context:
+      name: context
       in: query
-      description: Order sort attribute ascending or descending.
+      description: Scope under which the request is made; determines fields present in response.
       schema:
         type: string
-        default: desc
+        default: view
         enum:
-        - asc
-        - desc
+        - view
+        - embed
+        - edit
     postOrderby:
       name: postOrderby
       in: query
@@ -199,42 +236,14 @@ components:
         - slug
         - include_slugs
         - title
-    search_columns:
-      name: search_columns
+    exclude:
+      name: exclude
       in: query
-      description: Array of column names to be searched.
+      description: Ensure result set excludes specific IDs.
       schema:
         type: array
         items:
-          type: string
-    offset:
-      name: offset
-      in: query
-      description: Offset the result set by a specific number of items.
-      schema:
-        type: integer
-    search_semantics:
-      name: search_semantics
-      in: query
-      description: How to interpret the search input.
-      schema:
-        type: string
-        enum:
-        - exact
-    slugFilter:
-      name: slugFilter
-      in: query
-      description: Limit result set to items with one or more specific slugs.
-      schema:
-        type: array
-        items:
-          type: string
-    search:
-      name: search
-      in: query
-      description: Limit results to those matching a string.
-      schema:
-        type: string
+          type: integer
     before:
       name: before
       in: query
@@ -242,55 +251,6 @@ components:
       schema:
         type: string
         format: date-time
-    modified_before:
-      name: modified_before
-      in: query
-      description: Limit response to posts modified before a given ISO8601 compliant date.
-      schema:
-        type: string
-        format: date-time
-    after:
-      name: after
-      in: query
-      description: Limit response to posts published after a given ISO8601 compliant date.
-      schema:
-        type: string
-        format: date-time
-    modified_after:
-      name: modified_after
-      in: query
-      description: Limit response to posts modified after a given ISO8601 compliant date.
-      schema:
-        type: string
-        format: date-time
-    page:
-      name: page
-      in: query
-      description: Current page of the collection.
-      schema:
-        type: integer
-        default: 1
-        minimum: 1
-    per_page:
-      name: per_page
-      in: query
-      description: Maximum number of items to be returned in result set.
-      schema:
-        type: integer
-        default: 10
-        minimum: 1
-        maximum: 100
-    context:
-      name: context
-      in: query
-      description: Scope under which the request is made; determines fields present in response.
-      schema:
-        type: string
-        default: view
-        enum:
-        - view
-        - embed
-        - edit
     parentFilter:
       name: parentFilter
       in: query
@@ -299,6 +259,46 @@ components:
         type: array
         items:
           type: integer
+    id:
+      name: id
+      in: path
+      description: Unique identifier for the resource.
+      schema:
+        type: integer
+      required: true
+    order:
+      name: order
+      in: query
+      description: Order sort attribute ascending or descending.
+      schema:
+        type: string
+        default: desc
+        enum:
+        - asc
+        - desc
+    author_exclude:
+      name: author_exclude
+      in: query
+      description: Ensure result set excludes posts assigned to specific authors.
+      schema:
+        type: array
+        items:
+          type: integer
+    modified_after:
+      name: modified_after
+      in: query
+      description: Limit response to posts modified after a given ISO8601 compliant date.
+      schema:
+        type: string
+        format: date-time
+    slugFilter:
+      name: slugFilter
+      in: query
+      description: Limit result set to items with one or more specific slugs.
+      schema:
+        type: array
+        items:
+          type: string
     parent_exclude:
       name: parent_exclude
       in: query
@@ -308,13 +308,6 @@ components:
         items:
           type: integer
   schemas:
-    Rendered:
-      type: object
-      description: A WordPress rendered-content object.
-      properties:
-        rendered:
-          type: string
-          description: HTML for the field, transformed for display.
     MediaItem:
       type: object
       description: A media library item — logo, leadership portrait, press or poster image, or document.
@@ -375,6 +368,17 @@ components:
           description: URL to the original attachment file.
         _links:
           $ref: '#/components/schemas/Links'
+    Links:
+      type: object
+      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
+      additionalProperties: true
+    Rendered:
+      type: object
+      description: A WordPress rendered-content object.
+      properties:
+        rendered:
+          type: string
+          description: HTML for the field, transformed for display.
     Error:
       type: object
       description: The WordPress REST error envelope. This API does NOT use RFC 9457 application/problem+json; errors are returned as application/json with this shape.
@@ -411,10 +415,6 @@ components:
               additionalProperties: true
               description: Per-parameter structured validation detail.
           additionalProperties: true
-    Links:
-      type: object
-      description: HAL-style `_links` relations WordPress attaches to every resource — `self`, `collection`, `about`, `author`, `replies`, `wp:featuredmedia`, `wp:term` and `curies`.
-      additionalProperties: true
   responses:
     NotFound:
       description: No such resource, or no route matching the URL and method.
@@ -435,6 +435,19 @@ components:
                 message: No route was found matching the URL and request method.
                 data:
                   status: 404
+    Unauthorized:
+      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              value:
+                code: rest_forbidden
+                message: Sorry, you are not allowed to do that.
+                data:
+                  status: 401
     BadRequest:
       description: Invalid parameter. Returned with code `rest_invalid_param` and a per-parameter `data.params` map, e.g. `per_page must be between 1 (inclusive) and 100 (inclusive)`.
       content:
@@ -450,16 +463,3 @@ components:
                   status: 400
                   params:
                     per_page: per_page must be between 1 (inclusive) and 100 (inclusive)
-    Unauthorized:
-      description: The requested context or route requires credentials. Returned with code `rest_forbidden` when `context=edit` is requested anonymously.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          examples:
-            forbidden:
-              value:
-                code: rest_forbidden
-                message: Sorry, you are not allowed to do that.
-                data:
-                  status: 401
